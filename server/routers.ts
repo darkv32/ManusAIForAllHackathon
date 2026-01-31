@@ -4,22 +4,233 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { invokeLLM } from "./_core/llm";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import * as db from "./db";
 
 export const appRouter = router({
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
-  // Strategy router for AI-powered insights
+  // ============ INGREDIENTS ============
+  ingredients: router({
+    list: publicProcedure.query(async () => {
+      return await db.getAllIngredients();
+    }),
+    
+    get: publicProcedure
+      .input(z.object({ ingredientId: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getIngredientById(input.ingredientId);
+      }),
+    
+    create: publicProcedure
+      .input(z.object({
+        ingredientId: z.string(),
+        name: z.string(),
+        category: z.string(),
+        unit: z.string(),
+        costPerUnit: z.string(),
+        currentStock: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.createIngredient(input);
+        return { success: true };
+      }),
+    
+    update: publicProcedure
+      .input(z.object({
+        ingredientId: z.string(),
+        name: z.string().optional(),
+        category: z.string().optional(),
+        unit: z.string().optional(),
+        costPerUnit: z.string().optional(),
+        currentStock: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { ingredientId, ...data } = input;
+        await db.updateIngredient(ingredientId, data);
+        return { success: true };
+      }),
+    
+    delete: publicProcedure
+      .input(z.object({ ingredientId: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deleteIngredient(input.ingredientId);
+        return { success: true };
+      }),
+    
+    bulkUpload: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          ingredientId: z.string(),
+          name: z.string(),
+          category: z.string(),
+          unit: z.string(),
+          costPerUnit: z.string(),
+          currentStock: z.string().optional(),
+        }))
+      }))
+      .mutation(async ({ input }) => {
+        const count = await db.bulkUpsertIngredients(input.items);
+        return { success: true, count };
+      }),
+  }),
+
+  // ============ MENU ITEMS ============
+  menuItems: router({
+    list: publicProcedure.query(async () => {
+      return await db.getAllMenuItems();
+    }),
+    
+    listWithCosts: publicProcedure.query(async () => {
+      return await db.getMenuItemsWithCosts();
+    }),
+    
+    get: publicProcedure
+      .input(z.object({ itemId: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getMenuItemById(input.itemId);
+      }),
+    
+    create: publicProcedure
+      .input(z.object({
+        itemId: z.string(),
+        itemName: z.string(),
+        category: z.string(),
+        salesPrice: z.string(),
+        taxRate: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.createMenuItem(input);
+        return { success: true };
+      }),
+    
+    update: publicProcedure
+      .input(z.object({
+        itemId: z.string(),
+        itemName: z.string().optional(),
+        category: z.string().optional(),
+        salesPrice: z.string().optional(),
+        taxRate: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { itemId, ...data } = input;
+        await db.updateMenuItem(itemId, data);
+        return { success: true };
+      }),
+    
+    delete: publicProcedure
+      .input(z.object({ itemId: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deleteMenuItem(input.itemId);
+        return { success: true };
+      }),
+    
+    bulkUpload: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          itemId: z.string(),
+          itemName: z.string(),
+          category: z.string(),
+          salesPrice: z.string(),
+          taxRate: z.string().optional(),
+        }))
+      }))
+      .mutation(async ({ input }) => {
+        const count = await db.bulkUpsertMenuItems(input.items);
+        return { success: true, count };
+      }),
+  }),
+
+  // ============ RECIPES ============
+  recipes: router({
+    list: publicProcedure.query(async () => {
+      return await db.getAllRecipes();
+    }),
+    
+    getByMenuItem: publicProcedure
+      .input(z.object({ menuItemId: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getRecipesByMenuItemId(input.menuItemId);
+      }),
+    
+    create: publicProcedure
+      .input(z.object({
+        recipeId: z.string(),
+        menuItemId: z.string(),
+        ingredientId: z.string(),
+        quantity: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.createRecipe(input);
+        return { success: true };
+      }),
+    
+    bulkUpload: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          recipeId: z.string(),
+          menuItemId: z.string(),
+          ingredientId: z.string(),
+          quantity: z.string(),
+        }))
+      }))
+      .mutation(async ({ input }) => {
+        const count = await db.bulkUpsertRecipes(input.items);
+        return { success: true, count };
+      }),
+  }),
+
+  // ============ SALES ============
+  sales: router({
+    list: publicProcedure.query(async () => {
+      return await db.getAllSales();
+    }),
+    
+    summary: publicProcedure.query(async () => {
+      return await db.getSalesSummary();
+    }),
+    
+    profitability: publicProcedure.query(async () => {
+      return await db.getProfitabilityData();
+    }),
+    
+    bulkUpload: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          transactionId: z.string(),
+          timestamp: z.string(),
+          menuItemId: z.string(),
+          itemName: z.string(),
+          quantity: z.number(),
+          unitPrice: z.string(),
+          totalSales: z.string(),
+          paymentMethod: z.string(),
+          paymentDetail: z.string().optional(),
+        }))
+      }))
+      .mutation(async ({ input }) => {
+        const items = input.items.map(item => ({
+          ...item,
+          timestamp: new Date(item.timestamp),
+        }));
+        const count = await db.bulkInsertSales(items);
+        return { success: true, count };
+      }),
+    
+    clear: publicProcedure.mutation(async () => {
+      await db.clearAllSales();
+      return { success: true };
+    }),
+  }),
+
+  // ============ STRATEGY (AI) ============
   strategy: router({
     generateInsights: publicProcedure
       .input(z.object({ context: z.string() }))
@@ -39,23 +250,18 @@ Be specific with numbers, ingredient names, and actionable steps. Keep each reco
         const userPrompt = `Here is the current business data for Matsu Matcha:
 
 MENU ENGINEERING:
-- Stars (High Profit/High Volume): ${contextData.menuEngineering.stars.map((s: { name: string; monthlyProfit: number }) => `${s.name} ($${s.monthlyProfit}/month)`).join(', ')}
-- Plowhorses (Low Profit/High Volume): ${contextData.menuEngineering.plowhorses.map((s: { name: string }) => s.name).join(', ') || 'None'}
-- Puzzles (High Profit/Low Volume): ${contextData.menuEngineering.puzzles.map((s: { name: string }) => s.name).join(', ') || 'None'}
-- Dogs (Low Profit/Low Volume): ${contextData.menuEngineering.dogs.map((s: { name: string }) => s.name).join(', ') || 'None'}
+- Stars (High Profit/High Volume): ${contextData.menuEngineering?.stars?.map((s: { name: string; monthlyProfit: number }) => `${s.name} ($${s.monthlyProfit}/month)`).join(', ') || 'None'}
+- Plowhorses (Low Profit/High Volume): ${contextData.menuEngineering?.plowhorses?.map((s: { name: string }) => s.name).join(', ') || 'None'}
+- Puzzles (High Profit/Low Volume): ${contextData.menuEngineering?.puzzles?.map((s: { name: string }) => s.name).join(', ') || 'None'}
+- Dogs (Low Profit/Low Volume): ${contextData.menuEngineering?.dogs?.map((s: { name: string }) => s.name).join(', ') || 'None'}
 
 COST TRENDS:
-- Rising costs: ${contextData.costTrends.rising.map((t: { name: string; percentageChange: number }) => `${t.name} (+${t.percentageChange}%)`).join(', ') || 'None'}
-- Falling costs (opportunities): ${contextData.costTrends.falling.map((t: { name: string; percentageChange: number }) => `${t.name} (${t.percentageChange}%)`).join(', ') || 'None'}
+- Rising costs: ${contextData.costTrends?.rising?.map((t: { name: string; percentageChange: number }) => `${t.name} (+${t.percentageChange}%)`).join(', ') || 'None'}
+- Falling costs (opportunities): ${contextData.costTrends?.falling?.map((t: { name: string; percentageChange: number }) => `${t.name} (${t.percentageChange}%)`).join(', ') || 'None'}
 
 PROFITABILITY:
-- Current margin: ${contextData.profitability.actualMargin}% (target: ${contextData.profitability.targetMargin}%)
-- Profit gap to goal: $${contextData.profitability.profitGapToGoal}
-- Oatmilk lift profit: $${contextData.profitability.oatmilkLiftProfit}
-
-INVENTORY:
-- Excess inventory: ${contextData.excessInventory.map((i: { name: string }) => i.name).join(', ') || 'None'}
-- Expiring soon: ${contextData.expiringItems.map((i: { name: string; expiryDate: string }) => `${i.name} (${i.expiryDate})`).join(', ') || 'None'}
+- Current margin: ${contextData.profitability?.actualMargin || 0}% (target: ${contextData.profitability?.targetMargin || 70}%)
+- Profit gap to goal: $${contextData.profitability?.profitGapToGoal || 0}
 
 Please provide your strategic recommendations.`;
 
@@ -108,7 +314,6 @@ Please provide your strategic recommendations.`;
           throw new Error("Unexpected response format from LLM");
         } catch (error) {
           console.error("Failed to generate insights:", error);
-          // Return fallback recommendations if API fails
           return {
             drinkIdeas: [
               "Strawberry Matcha Frappe: Use expiring strawberries with culinary matcha and oat milk for a refreshing summer drink ($9.50, est. 62% margin)",

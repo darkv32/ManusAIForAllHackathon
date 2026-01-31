@@ -67,7 +67,7 @@ const navGroups: NavGroup[] = [
     items: [
       { title: 'Sales', href: '/sales', icon: <DollarSign className="h-[18px] w-[18px]" /> },
       { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-[18px] w-[18px]" /> },
-      { title: 'Menu Analytics', href: '/menu', icon: <BarChart3 className="h-[18px] w-[18px]" /> },
+      { title: 'Menu & Costs', href: '/menu', icon: <BarChart3 className="h-[18px] w-[18px]" /> },
     ]
   },
   {

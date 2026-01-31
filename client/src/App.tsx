@@ -7,7 +7,7 @@ import { DataProvider } from "./contexts/DataContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
-import MenuAnalytics from "./pages/MenuAnalytics";
+import Menu from "./pages/Menu";
 import Procurement from "./pages/Procurement";
 import Profitability from "./pages/Profitability";
 import Sales from "./pages/Sales";
@@ -23,7 +23,7 @@ function Router() {
       <Route path="/sales" component={Sales} />
       <Route path="/profitability" component={Profitability} />
       <Route path="/procurement" component={Procurement} />
-      <Route path="/menu" component={MenuAnalytics} />
+      <Route path="/menu" component={Menu} />
       <Route path="/strategy" component={Strategy} />
       <Route path="/stock-input" component={StockInput} />
       <Route path="/settings" component={Settings} />
