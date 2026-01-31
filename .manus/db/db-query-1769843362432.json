@@ -1,0 +1,90 @@
+{
+  "query": "SELECT 'sales' as source, menuItemId, COUNT(*) as cnt FROM sales GROUP BY menuItemId\nUNION ALL\nSELECT 'recipes' as source, menuItemId, COUNT(*) as cnt FROM recipes GROUP BY menuItemId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT 'sales' as source, menuItemId, COUNT(*) as cnt FROM sales GROUP BY menuItemId\nUNION ALL\nSELECT 'recipes' as source, menuItemId, COUNT(*) as cnt FROM recipes GROUP BY menuItemId;",
+  "rows": [
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_102",
+      "cnt": "4"
+    },
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_107",
+      "cnt": "4"
+    },
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_103",
+      "cnt": "4"
+    },
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_105",
+      "cnt": "2"
+    },
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_106",
+      "cnt": "6"
+    },
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_104",
+      "cnt": "6"
+    },
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_100",
+      "cnt": "4"
+    },
+    {
+      "source": "recipes",
+      "menuItemId": "MENU_101",
+      "cnt": "5"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_107",
+      "cnt": "566"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_103",
+      "cnt": "627"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_102",
+      "cnt": "616"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_106",
+      "cnt": "599"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_100",
+      "cnt": "603"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_105",
+      "cnt": "588"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_104",
+      "cnt": "624"
+    },
+    {
+      "source": "sales",
+      "menuItemId": "MENU_101",
+      "cnt": "631"
+    }
+  ],
+  "messages": [],
+  "stdout": "source\tmenuItemId\tcnt\nrecipes\tMENU_102\t4\nrecipes\tMENU_107\t4\nrecipes\tMENU_103\t4\nrecipes\tMENU_105\t2\nrecipes\tMENU_106\t6\nrecipes\tMENU_104\t6\nrecipes\tMENU_100\t4\nrecipes\tMENU_101\t5\nsales\tMENU_107\t566\nsales\tMENU_103\t627\nsales\tMENU_102\t616\nsales\tMENU_106\t599\nsales\tMENU_100\t603\nsales\tMENU_105\t588\nsales\tMENU_104\t624\nsales\tMENU_101\t631\n",
+  "stderr": "",
+  "execution_time_ms": 1520
+}

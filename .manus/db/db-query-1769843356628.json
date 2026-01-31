@@ -1,0 +1,14 @@
+{
+  "query": "SELECT \n  (SELECT GROUP_CONCAT(DISTINCT menuItemId) FROM sales LIMIT 10) as sales_ids,\n  (SELECT GROUP_CONCAT(DISTINCT menuItemId) FROM recipes LIMIT 10) as recipe_ids;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT \n  (SELECT GROUP_CONCAT(DISTINCT menuItemId) FROM sales LIMIT 10) as sales_ids,\n  (SELECT GROUP_CONCAT(DISTINCT menuItemId) FROM recipes LIMIT 10) as recipe_ids;",
+  "rows": [
+    {
+      "sales_ids": "MENU_104,MENU_106,MENU_103,MENU_100,MENU_102,MENU_101,MENU_105,MENU_107",
+      "recipe_ids": "MENU_100,MENU_101,MENU_102,MENU_103,MENU_104,MENU_105,MENU_106,MENU_107"
+    }
+  ],
+  "messages": [],
+  "stdout": "sales_ids\trecipe_ids\nMENU_104,MENU_106,MENU_103,MENU_100,MENU_102,MENU_101,MENU_105,MENU_107\tMENU_100,MENU_101,MENU_102,MENU_103,MENU_104,MENU_105,MENU_106,MENU_107\n",
+  "stderr": "",
+  "execution_time_ms": 1566
+}

@@ -1,0 +1,42 @@
+{
+  "query": "SELECT DISTINCT s.menuItemId as sales_menu_id, r.menuItemId as recipe_menu_id \nFROM sales s \nLEFT JOIN recipes r ON s.menuItemId = r.menuItemId \nLIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT DISTINCT s.menuItemId as sales_menu_id, r.menuItemId as recipe_menu_id \nFROM sales s \nLEFT JOIN recipes r ON s.menuItemId = r.menuItemId \nLIMIT 20;",
+  "rows": [
+    {
+      "sales_menu_id": "MENU_101",
+      "recipe_menu_id": "MENU_101"
+    },
+    {
+      "sales_menu_id": "MENU_106",
+      "recipe_menu_id": "MENU_106"
+    },
+    {
+      "sales_menu_id": "MENU_100",
+      "recipe_menu_id": "MENU_100"
+    },
+    {
+      "sales_menu_id": "MENU_103",
+      "recipe_menu_id": "MENU_103"
+    },
+    {
+      "sales_menu_id": "MENU_102",
+      "recipe_menu_id": "MENU_102"
+    },
+    {
+      "sales_menu_id": "MENU_104",
+      "recipe_menu_id": "MENU_104"
+    },
+    {
+      "sales_menu_id": "MENU_105",
+      "recipe_menu_id": "MENU_105"
+    },
+    {
+      "sales_menu_id": "MENU_107",
+      "recipe_menu_id": "MENU_107"
+    }
+  ],
+  "messages": [],
+  "stdout": "sales_menu_id\trecipe_menu_id\nMENU_101\tMENU_101\nMENU_106\tMENU_106\nMENU_100\tMENU_100\nMENU_103\tMENU_103\nMENU_102\tMENU_102\nMENU_104\tMENU_104\nMENU_105\tMENU_105\nMENU_107\tMENU_107\n",
+  "stderr": "",
+  "execution_time_ms": 1577
+}

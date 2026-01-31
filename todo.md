@@ -113,3 +113,16 @@
 - [x] Ensure both pages use same data source for profit metrics
 - [x] Update Order Command daily usage to use past month average from sales data
 - [x] Calculate average daily ingredient usage from actual sales transactions
+
+
+## Promotions AI Recommendation Fix
+- [x] Filter out packaging ingredients from AI promotion recommendations
+- [x] Only recommend promotions based on food ingredients (matcha, milk, syrups, fresh produce)
+- [x] Exclude categories: Packaging, Equipment, Supplies
+
+
+## Inventory Daily Usage Fix
+- [x] Fix daily usage calculation to properly link sales -> menu items -> recipes -> ingredients
+- [x] Calculate ingredient consumption from sales transactions using recipe quantities
+- [x] Ensure past 30 days of sales data is used for average daily usage
+- [x] Use most recent sales date as reference point for historical data compatibility

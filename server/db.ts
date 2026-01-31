@@ -661,11 +661,17 @@ export async function getIngredientAnalytics(ingredientId: string): Promise<Ingr
   }
   
   // Get last 30 days of usage for monthly average
-  const today = new Date();
+  // Use the most recent sales date as reference point (handles historical data)
+  const allDates = Array.from(salesByDate.keys()).sort();
+  const mostRecentSaleDate = allDates.length > 0 
+    ? new Date(allDates[allDates.length - 1]) 
+    : new Date();
+  const today = new Date(); // Keep for projections
   const dailyUsageHistory: { date: string; usage: number }[] = [];
   
+  // Use the last 30 days from the most recent sale date
   for (let i = 29; i >= 0; i--) {
-    const date = new Date(today);
+    const date = new Date(mostRecentSaleDate);
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split('T')[0];
     dailyUsageHistory.push({
@@ -931,10 +937,30 @@ export async function generateSuggestedPromotions(): Promise<SuggestedPromotion[
   
   const suggestions: SuggestedPromotion[] = [];
   
-  // 1. Find ingredients with expiry risk (within 7 days)
+  // Categories to exclude from promotion recommendations (non-food items)
+  const excludedCategories = [
+    'Packaging', 'packaging',
+    'Equipment', 'equipment',
+    'Supplies', 'supplies',
+    'Disposables', 'disposables',
+    'Cups', 'cups',
+    'Lids', 'lids',
+    'Straws', 'straws',
+    'Napkins', 'napkins',
+    'Cleaning', 'cleaning',
+  ];
+  
+  // Filter to only include food ingredients
+  const foodIngredients = allIngredients.filter(i => 
+    !excludedCategories.some(cat => 
+      i.category?.toLowerCase().includes(cat.toLowerCase())
+    )
+  );
+  
+  // 1. Find ingredients with expiry risk (within 7 days) - only food ingredients
   const now = new Date();
   const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const expiringIngredients = allIngredients.filter(i => 
+  const expiringIngredients = foodIngredients.filter(i => 
     i.expiryDate && new Date(i.expiryDate) <= sevenDaysFromNow
   );
   
@@ -956,7 +982,8 @@ export async function generateSuggestedPromotions(): Promise<SuggestedPromotion[
     ? Math.max(1, Math.ceil((new Date(allSales[allSales.length - 1].timestamp).getTime() - new Date(allSales[0].timestamp).getTime()) / (24 * 60 * 60 * 1000)))
     : 30;
   
-  const overstockedIngredients = allIngredients.filter(i => {
+  // Filter overstocked ingredients - only food ingredients (exclude packaging, equipment, supplies)
+  const overstockedIngredients = foodIngredients.filter(i => {
     const totalUsage = ingredientUsage.get(i.ingredientId) || 0;
     const dailyUsage = totalUsage / salesDays;
     const currentStock = parseFloat(String(i.currentStock || 0));
