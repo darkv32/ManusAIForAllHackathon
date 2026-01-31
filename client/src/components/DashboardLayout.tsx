@@ -26,7 +26,8 @@ import { Link, useLocation } from 'wouter';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from './ui/sheet';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface NavItem {
   title: string;
@@ -163,6 +164,10 @@ function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[280px] p-0">
+        <VisuallyHidden>
+          <SheetTitle>Navigation Menu</SheetTitle>
+          <SheetDescription>Main navigation for Matsu Matcha Dashboard</SheetDescription>
+        </VisuallyHidden>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center h-16 px-4 border-b gap-3">
