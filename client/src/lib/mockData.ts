@@ -426,3 +426,295 @@ export const hourlySalesPattern = [
   { hour: '6PM', orders: 88 },
   { hour: '7PM', orders: 62 }
 ];
+
+// Extended Inventory Analytics Data
+export interface IngredientAnalytics {
+  ingredientId: string;
+  averageDailyUsage: number;
+  projectedDaysRemaining: number;
+  recommendedReorderQty: number;
+  recommendedOrderDate: string;
+  leadTimeDays: number;
+  urgencyStatus: 'critical' | 'soon' | 'monitor';
+  impactedMenuItems: string[];
+  usageByMenuItem: { menuItemId: string; menuItemName: string; dailyUsage: number; percentage: number }[];
+  stockHistory: { date: string; stock: number }[];
+  projectedStock: { date: string; stock: number }[];
+  notes: string;
+}
+
+// Calculate analytics for each inventory item
+export const ingredientAnalytics: IngredientAnalytics[] = [
+  {
+    ingredientId: 'matcha-ceremonial',
+    averageDailyUsage: 0.045,
+    projectedDaysRemaining: 56,
+    recommendedReorderQty: 2,
+    recommendedOrderDate: '2026-03-15',
+    leadTimeDays: 7,
+    urgencyStatus: 'monitor',
+    impactedMenuItems: ['Signature Matcha Latte', 'Premium Ceremonial Bowl', 'Honey Foam Matcha', 'Matcha Affogato'],
+    usageByMenuItem: [
+      { menuItemId: 'signature-matcha-latte', menuItemName: 'Signature Matcha Latte', dailyUsage: 0.0105, percentage: 23.3 },
+      { menuItemId: 'premium-ceremonial', menuItemName: 'Premium Ceremonial Bowl', dailyUsage: 0.0049, percentage: 10.9 },
+      { menuItemId: 'honey-matcha', menuItemName: 'Honey Foam Matcha', dailyUsage: 0.0057, percentage: 12.7 },
+      { menuItemId: 'matcha-affogato', menuItemName: 'Matcha Affogato', dailyUsage: 0.0019, percentage: 4.2 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 3.2 },
+      { date: '2026-01-26', stock: 3.15 },
+      { date: '2026-01-27', stock: 3.1 },
+      { date: '2026-01-28', stock: 3.05 },
+      { date: '2026-01-29', stock: 2.95 },
+      { date: '2026-01-30', stock: 2.55 },
+      { date: '2026-01-31', stock: 2.5 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 2.5 },
+      { date: '2026-02-07', stock: 2.19 },
+      { date: '2026-02-14', stock: 1.88 },
+      { date: '2026-02-21', stock: 1.57 },
+      { date: '2026-02-28', stock: 1.26 },
+      { date: '2026-03-07', stock: 0.95 },
+      { date: '2026-03-14', stock: 0.64 }
+    ],
+    notes: ''
+  },
+  {
+    ingredientId: 'matcha-culinary',
+    averageDailyUsage: 0.082,
+    projectedDaysRemaining: 51,
+    recommendedReorderQty: 4,
+    recommendedOrderDate: '2026-03-10',
+    leadTimeDays: 7,
+    urgencyStatus: 'monitor',
+    impactedMenuItems: ['Strawberry Matcha', 'Oat Matcha Latte', 'Iced Matcha'],
+    usageByMenuItem: [
+      { menuItemId: 'strawberry-matcha', menuItemName: 'Strawberry Matcha', dailyUsage: 0.022, percentage: 26.8 },
+      { menuItemId: 'oat-matcha', menuItemName: 'Oat Matcha Latte', dailyUsage: 0.085, percentage: 36.6 },
+      { menuItemId: 'iced-matcha', menuItemName: 'Iced Matcha', dailyUsage: 0.089, percentage: 38.4 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 4.8 },
+      { date: '2026-01-26', stock: 4.72 },
+      { date: '2026-01-27', stock: 4.62 },
+      { date: '2026-01-28', stock: 4.52 },
+      { date: '2026-01-29', stock: 4.42 },
+      { date: '2026-01-30', stock: 4.3 },
+      { date: '2026-01-31', stock: 4.2 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 4.2 },
+      { date: '2026-02-07', stock: 3.63 },
+      { date: '2026-02-14', stock: 3.06 },
+      { date: '2026-02-21', stock: 2.49 },
+      { date: '2026-02-28', stock: 1.92 },
+      { date: '2026-03-07', stock: 1.35 },
+      { date: '2026-03-14', stock: 0.78 }
+    ],
+    notes: ''
+  },
+  {
+    ingredientId: 'houjicha',
+    averageDailyUsage: 0.067,
+    projectedDaysRemaining: 27,
+    recommendedReorderQty: 2,
+    recommendedOrderDate: '2026-02-20',
+    leadTimeDays: 5,
+    urgencyStatus: 'monitor',
+    impactedMenuItems: ['Houjicha Latte'],
+    usageByMenuItem: [
+      { menuItemId: 'houjicha-latte', menuItemName: 'Houjicha Latte', dailyUsage: 0.067, percentage: 100 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 2.2 },
+      { date: '2026-01-26', stock: 2.13 },
+      { date: '2026-01-27', stock: 2.06 },
+      { date: '2026-01-28', stock: 1.99 },
+      { date: '2026-01-29', stock: 1.92 },
+      { date: '2026-01-30', stock: 1.86 },
+      { date: '2026-01-31', stock: 1.8 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 1.8 },
+      { date: '2026-02-07', stock: 1.33 },
+      { date: '2026-02-14', stock: 0.86 },
+      { date: '2026-02-21', stock: 0.39 },
+      { date: '2026-02-28', stock: 0 }
+    ],
+    notes: ''
+  },
+  {
+    ingredientId: 'meiji-milk',
+    averageDailyUsage: 8.5,
+    projectedDaysRemaining: 2,
+    recommendedReorderQty: 30,
+    recommendedOrderDate: '2026-02-01',
+    leadTimeDays: 1,
+    urgencyStatus: 'critical',
+    impactedMenuItems: ['Signature Matcha Latte', 'Houjicha Latte', 'Strawberry Matcha', 'Honey Foam Matcha', 'Iced Matcha'],
+    usageByMenuItem: [
+      { menuItemId: 'signature-matcha-latte', menuItemName: 'Signature Matcha Latte', dailyUsage: 8.75, percentage: 35.7 },
+      { menuItemId: 'houjicha-latte', menuItemName: 'Houjicha Latte', dailyUsage: 5.57, percentage: 22.7 },
+      { menuItemId: 'strawberry-matcha', menuItemName: 'Strawberry Matcha', dailyUsage: 2.23, percentage: 9.1 },
+      { menuItemId: 'honey-matcha', menuItemName: 'Honey Foam Matcha', dailyUsage: 3.83, percentage: 15.6 },
+      { menuItemId: 'iced-matcha', menuItemName: 'Iced Matcha', dailyUsage: 6.69, percentage: 27.3 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 28 },
+      { date: '2026-01-26', stock: 22 },
+      { date: '2026-01-27', stock: 18 },
+      { date: '2026-01-28', stock: 25 },
+      { date: '2026-01-29', stock: 20 },
+      { date: '2026-01-30', stock: 18 },
+      { date: '2026-01-31', stock: 15 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 15 },
+      { date: '2026-02-01', stock: 6.5 },
+      { date: '2026-02-02', stock: 0 }
+    ],
+    notes: 'High velocity item - order daily or every other day'
+  },
+  {
+    ingredientId: 'oatly',
+    averageDailyUsage: 7.07,
+    projectedDaysRemaining: 2,
+    recommendedReorderQty: 24,
+    recommendedOrderDate: '2026-02-01',
+    leadTimeDays: 2,
+    urgencyStatus: 'critical',
+    impactedMenuItems: ['Oat Matcha Latte'],
+    usageByMenuItem: [
+      { menuItemId: 'oat-matcha', menuItemName: 'Oat Matcha Latte', dailyUsage: 7.07, percentage: 100 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 20 },
+      { date: '2026-01-26', stock: 18 },
+      { date: '2026-01-27', stock: 16 },
+      { date: '2026-01-28', stock: 24 },
+      { date: '2026-01-29', stock: 19 },
+      { date: '2026-01-30', stock: 15 },
+      { date: '2026-01-31', stock: 12 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 12 },
+      { date: '2026-02-01', stock: 4.93 },
+      { date: '2026-02-02', stock: 0 }
+    ],
+    notes: 'Popular dairy alternative - maintain buffer stock'
+  },
+  {
+    ingredientId: 'strawberries',
+    averageDailyUsage: 0.56,
+    projectedDaysRemaining: 5,
+    recommendedReorderQty: 4,
+    recommendedOrderDate: '2026-02-03',
+    leadTimeDays: 1,
+    urgencyStatus: 'soon',
+    impactedMenuItems: ['Strawberry Matcha'],
+    usageByMenuItem: [
+      { menuItemId: 'strawberry-matcha', menuItemName: 'Strawberry Matcha', dailyUsage: 0.56, percentage: 100 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 5.5 },
+      { date: '2026-01-26', stock: 5.0 },
+      { date: '2026-01-27', stock: 4.4 },
+      { date: '2026-01-28', stock: 3.9 },
+      { date: '2026-01-29', stock: 6.0 },
+      { date: '2026-01-30', stock: 3.5 },
+      { date: '2026-01-31', stock: 3.0 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 3.0 },
+      { date: '2026-02-02', stock: 1.88 },
+      { date: '2026-02-04', stock: 0.76 },
+      { date: '2026-02-05', stock: 0.2 },
+      { date: '2026-02-06', stock: 0 }
+    ],
+    notes: 'Expiring Feb 3 - consider promotion to reduce waste'
+  },
+  {
+    ingredientId: 'chasen',
+    averageDailyUsage: 0.14,
+    projectedDaysRemaining: 57,
+    recommendedReorderQty: 5,
+    recommendedOrderDate: '2026-03-20',
+    leadTimeDays: 14,
+    urgencyStatus: 'monitor',
+    impactedMenuItems: ['Premium Ceremonial Bowl'],
+    usageByMenuItem: [
+      { menuItemId: 'premium-ceremonial', menuItemName: 'Premium Ceremonial Bowl', dailyUsage: 0.14, percentage: 100 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 9 },
+      { date: '2026-01-26', stock: 9 },
+      { date: '2026-01-27', stock: 8 },
+      { date: '2026-01-28', stock: 8 },
+      { date: '2026-01-29', stock: 8 },
+      { date: '2026-01-30', stock: 8 },
+      { date: '2026-01-31', stock: 8 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 8 },
+      { date: '2026-02-14', stock: 6 },
+      { date: '2026-02-28', stock: 4 },
+      { date: '2026-03-14', stock: 2 },
+      { date: '2026-03-28', stock: 0 }
+    ],
+    notes: 'Long lead time from Japan - order well in advance'
+  },
+  {
+    ingredientId: 'honey',
+    averageDailyUsage: 0.029,
+    projectedDaysRemaining: 86,
+    recommendedReorderQty: 2,
+    recommendedOrderDate: '2026-04-15',
+    leadTimeDays: 3,
+    urgencyStatus: 'monitor',
+    impactedMenuItems: ['Honey Foam Matcha'],
+    usageByMenuItem: [
+      { menuItemId: 'honey-matcha', menuItemName: 'Honey Foam Matcha', dailyUsage: 0.029, percentage: 100 }
+    ],
+    stockHistory: [
+      { date: '2026-01-25', stock: 2.7 },
+      { date: '2026-01-26', stock: 2.67 },
+      { date: '2026-01-27', stock: 2.64 },
+      { date: '2026-01-28', stock: 2.61 },
+      { date: '2026-01-29', stock: 2.58 },
+      { date: '2026-01-30', stock: 2.55 },
+      { date: '2026-01-31', stock: 2.5 }
+    ],
+    projectedStock: [
+      { date: '2026-01-31', stock: 2.5 },
+      { date: '2026-02-28', stock: 1.69 },
+      { date: '2026-03-31', stock: 0.79 },
+      { date: '2026-04-15', stock: 0.36 }
+    ],
+    notes: ''
+  }
+];
+
+// Helper function to get analytics for an ingredient
+export function getIngredientAnalytics(ingredientId: string): IngredientAnalytics | undefined {
+  return ingredientAnalytics.find(a => a.ingredientId === ingredientId);
+}
+
+// Get priority ingredients sorted by urgency
+export function getPriorityIngredients(): (IngredientAnalytics & { ingredient: InventoryItem })[] {
+  const urgencyOrder = { critical: 0, soon: 1, monitor: 2 };
+  
+  return ingredientAnalytics
+    .map(analytics => {
+      const ingredient = inventoryItems.find(i => i.id === analytics.ingredientId);
+      return ingredient ? { ...analytics, ingredient } : null;
+    })
+    .filter((item): item is (IngredientAnalytics & { ingredient: InventoryItem }) => item !== null)
+    .sort((a, b) => {
+      // First sort by urgency
+      const urgencyDiff = urgencyOrder[a.urgencyStatus] - urgencyOrder[b.urgencyStatus];
+      if (urgencyDiff !== 0) return urgencyDiff;
+      // Then by days remaining
+      return a.projectedDaysRemaining - b.projectedDaysRemaining;
+    });
+}
