@@ -1,0 +1,13 @@
+name,category,price,description,isActive
+Signature Matcha Latte,Signature,8.50,Our signature blend with premium matcha and your choice of milk,true
+Premium Ceremonial Bowl,Premium,12.00,Traditional ceremonial grade matcha whisked to perfection,true
+Iced Matcha,Regular,6.50,Refreshing iced matcha with milk over ice,true
+Oat Matcha Latte,Signature,9.00,Creamy oat milk paired with our premium matcha,true
+Strawberry Matcha,Seasonal,9.50,Sweet strawberry puree swirled with matcha latte,true
+Honey Foam Matcha,Specialty,10.00,Topped with house-made honey foam,true
+Matcha Affogato,Premium,11.50,Ceremonial matcha poured over vanilla ice cream,true
+Houjicha Latte,Regular,7.00,Roasted Japanese tea with steamed milk,true
+Lavender Matcha,Seasonal,10.50,Calming lavender infused matcha latte,true
+Black Sesame Matcha,Specialty,11.00,Nutty black sesame blended with matcha,true
+Yuzu Matcha Refresher,Seasonal,9.50,Citrus yuzu with iced matcha,true
+Matcha Espresso Fusion,Specialty,10.50,Double shot espresso meets matcha,true

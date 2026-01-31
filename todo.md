@@ -98,3 +98,18 @@
 - [x] Add exact measurements (grams, ml) for each ingredient in AI recipes
 - [x] Add "Copy Recipe" button to copy recipe details to clipboard
 - [x] Ensure recipe format is clear and actionable for baristas
+
+
+## Demo CSV Files Creation
+- [x] Create ingredients.csv with 50+ ingredients across categories (matcha, milk, packaging, add-ons)
+- [x] Create menu_items.csv with 8-10 drinks including pricing
+- [x] Create recipes.csv linking drinks to ingredients with quantities
+- [x] Create sales.csv with 30+ days of transaction data showing trends
+- [x] Include seasonal patterns, weekend peaks, and popular item trends
+
+
+## Data Sync & Daily Usage Improvements
+- [x] Sync Strategy page data with Profitability page calculations
+- [x] Ensure both pages use same data source for profit metrics
+- [x] Update Order Command daily usage to use past month average from sales data
+- [x] Calculate average daily ingredient usage from actual sales transactions

@@ -4,27 +4,30 @@
  * - AI-generated strategic recommendations
  * - Scenario planning interface
  * - Monthly performance review
+ * - Synced with Profitability page data
  */
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
-import { businessMetrics, menuItems, strategicRecommendations } from '@/lib/mockData';
+import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import {
   ArrowRight,
   ArrowUp,
+  ArrowDown,
   Brain,
   Calculator,
   ChevronRight,
   DollarSign,
   Lightbulb,
+  Loader2,
   Megaphone,
   Sparkles,
   Tag,
@@ -33,7 +36,8 @@ import {
   Utensils,
   Zap
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 // Recommendation type icons
 const typeIcons: Record<string, React.ReactNode> = {
@@ -50,11 +54,20 @@ const typeColors: Record<string, string> = {
   pricing: 'bg-amber-100 text-amber-700'
 };
 
+interface StrategicRecommendation {
+  id: string;
+  type: 'promotion' | 'menu' | 'upsell' | 'pricing';
+  title: string;
+  description: string;
+  impact: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
 // Recommendation card
 function RecommendationCard({
   recommendation
 }: {
-  recommendation: typeof strategicRecommendations[0];
+  recommendation: StrategicRecommendation;
 }) {
   return (
     <Card className={cn(
@@ -89,9 +102,41 @@ function RecommendationCard({
   );
 }
 
-// Monthly performance review
-function MonthlyReview() {
-  const progress = (businessMetrics.currentMonthProfit / businessMetrics.monthlyProfitGoal) * 100;
+// Monthly performance review - uses real data
+function MonthlyReview({ metrics, isLoading }: { 
+  metrics: {
+    monthlyProfitGoal: number;
+    currentMonthProfit: number;
+    lastMonthProfit: number;
+    profitGrowth: number;
+    avgDailyRevenue: number;
+    avgDailyOrders: number;
+    topSellingItem: string;
+    highestMarginItem: string;
+    inventoryValue: number;
+    wastageThisMonth: number;
+  } | undefined;
+  isLoading: boolean;
+}) {
+  if (isLoading || !metrics) {
+    return (
+      <Card className="wabi-card animate-fade-up">
+        <CardHeader>
+          <CardTitle className="text-lg font-serif">Monthly Performance Review</CardTitle>
+          <CardDescription>Loading...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const progress = metrics.monthlyProfitGoal > 0 
+    ? (metrics.currentMonthProfit / metrics.monthlyProfitGoal) * 100 
+    : 0;
   const daysInMonth = 31;
   const currentDay = new Date().getDate();
   const expectedProgress = (currentDay / daysInMonth) * 100;
@@ -120,21 +165,21 @@ function MonthlyReview() {
             <div>
               <p className="text-sm text-muted-foreground">Current Profit</p>
               <p className="text-3xl font-serif font-semibold mono-numbers">
-                ${businessMetrics.currentMonthProfit.toLocaleString()}
+                ${metrics.currentMonthProfit.toLocaleString()}
               </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Goal</p>
               <p className="text-xl font-medium mono-numbers">
-                ${businessMetrics.monthlyProfitGoal.toLocaleString()}
+                ${metrics.monthlyProfitGoal.toLocaleString()}
               </p>
             </div>
           </div>
-          <Progress value={progress} className="h-3" />
+          <Progress value={Math.min(progress, 100)} className="h-3" />
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">{progress.toFixed(1)}% achieved</span>
             <span className="text-muted-foreground">
-              ${(businessMetrics.monthlyProfitGoal - businessMetrics.currentMonthProfit).toLocaleString()} remaining
+              ${Math.max(0, metrics.monthlyProfitGoal - metrics.currentMonthProfit).toLocaleString()} remaining
             </span>
           </div>
         </div>
@@ -146,21 +191,30 @@ function MonthlyReview() {
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">vs Last Month</p>
             <div className="flex items-center gap-2">
-              <ArrowUp className="h-4 w-4 text-green-600" />
-              <span className="text-lg font-semibold text-green-600">+{businessMetrics.profitGrowth}%</span>
+              {metrics.profitGrowth >= 0 ? (
+                <ArrowUp className="h-4 w-4 text-green-600" />
+              ) : (
+                <ArrowDown className="h-4 w-4 text-red-600" />
+              )}
+              <span className={cn(
+                'text-lg font-semibold',
+                metrics.profitGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+              )}>
+                {metrics.profitGrowth >= 0 ? '+' : ''}{metrics.profitGrowth.toFixed(1)}%
+              </span>
             </div>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Avg Daily Revenue</p>
-            <p className="text-lg font-semibold mono-numbers">${businessMetrics.avgDailyRevenue}</p>
+            <p className="text-lg font-semibold mono-numbers">${metrics.avgDailyRevenue.toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Avg Daily Orders</p>
-            <p className="text-lg font-semibold mono-numbers">{businessMetrics.avgDailyOrders}</p>
+            <p className="text-lg font-semibold mono-numbers">{metrics.avgDailyOrders}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Wastage This Month</p>
-            <p className="text-lg font-semibold text-amber-600 mono-numbers">${businessMetrics.wastageThisMonth}</p>
+            <p className="text-lg font-semibold text-amber-600 mono-numbers">${metrics.wastageThisMonth.toLocaleString()}</p>
           </div>
         </div>
 
@@ -172,15 +226,15 @@ function MonthlyReview() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <ChevronRight className="h-4 w-4 text-primary" />
-              <span>Top seller: <strong>{businessMetrics.topSellingItem}</strong></span>
+              <span>Top seller: <strong>{metrics.topSellingItem}</strong></span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <ChevronRight className="h-4 w-4 text-primary" />
-              <span>Best margin: <strong>{businessMetrics.highestMarginItem}</strong></span>
+              <span>Best margin: <strong>{metrics.highestMarginItem}</strong></span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <ChevronRight className="h-4 w-4 text-primary" />
-              <span>Inventory value: <strong>${businessMetrics.inventoryValue.toLocaleString()}</strong></span>
+              <span>Inventory value: <strong>${metrics.inventoryValue.toLocaleString()}</strong></span>
             </div>
           </div>
         </div>
@@ -189,21 +243,80 @@ function MonthlyReview() {
   );
 }
 
-// Scenario planning tool
-function ScenarioPlanner() {
+// Scenario planning tool - uses real data
+function ScenarioPlanner({ metrics, profitabilityData, isLoading }: { 
+  metrics: {
+    monthlyProfitGoal: number;
+    currentMonthProfit: number;
+    avgDailyRevenue: number;
+  } | undefined;
+  profitabilityData: Array<{
+    menuItemId: string;
+    itemName: string;
+    salesPrice: number;
+    cogs: number;
+    margin: number;
+    totalQuantity: number;
+    totalRevenue: number;
+    totalProfit: number;
+  }> | undefined;
+  isLoading: boolean;
+}) {
   const [targetProfit, setTargetProfit] = useState(15000);
   const [salesIncrease, setSalesIncrease] = useState(15);
+  
+  const utils = trpc.useUtils();
+  const setMonthlyGoalMutation = trpc.settings.setMonthlyProfitGoal.useMutation({
+    onSuccess: () => {
+      utils.metrics.business.invalidate();
+      utils.settings.getMonthlyProfitGoal.invalidate();
+      toast.success('Monthly profit goal updated');
+    },
+  });
 
-  // Calculate projections
-  const currentAvgMargin = menuItems.reduce((sum, item) => sum + item.margin, 0) / menuItems.length;
-  const currentWeeklyRevenue = menuItems.reduce((sum, item) => sum + item.weeklyVolume * item.price, 0);
+  // Sync target profit with database
+  useEffect(() => {
+    if (metrics?.monthlyProfitGoal) {
+      setTargetProfit(metrics.monthlyProfitGoal);
+    }
+  }, [metrics?.monthlyProfitGoal]);
+
+  const handleTargetChange = (newTarget: number) => {
+    setTargetProfit(newTarget);
+    setMonthlyGoalMutation.mutate({ goal: newTarget });
+  };
+
+  if (isLoading || !metrics || !profitabilityData) {
+    return (
+      <Card className="wabi-card animate-fade-up">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Calculator className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg font-serif">Scenario Planner</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Calculate projections from real data
+  const currentAvgMargin = profitabilityData.length > 0
+    ? profitabilityData.reduce((sum, item) => sum + item.margin, 0) / profitabilityData.length
+    : 70;
+  const currentWeeklyRevenue = profitabilityData.reduce((sum, item) => sum + item.totalRevenue, 0) / 4; // Approximate weekly
   const projectedWeeklyRevenue = currentWeeklyRevenue * (1 + salesIncrease / 100);
   const projectedMonthlyProfit = projectedWeeklyRevenue * 4 * (currentAvgMargin / 100);
 
-  const signatureLatte = menuItems.find((i) => i.id === 'signature-matcha-latte')!;
+  // Find signature latte for scenario
+  const signatureLatte = profitabilityData.find(i => i.itemName.toLowerCase().includes('signature')) 
+    || profitabilityData[0];
+  const latteProfit = signatureLatte ? signatureLatte.salesPrice - signatureLatte.cogs : 5;
   const additionalSignatureNeeded = Math.ceil(
-    (targetProfit - businessMetrics.currentMonthProfit) / 
-    ((signatureLatte.price - signatureLatte.cost) * 4)
+    (targetProfit - metrics.currentMonthProfit) / (latteProfit * 4)
   );
 
   return (
@@ -224,9 +337,12 @@ function ScenarioPlanner() {
             <Input
               type="number"
               value={targetProfit}
-              onChange={(e) => setTargetProfit(Number(e.target.value))}
+              onChange={(e) => handleTargetChange(Number(e.target.value))}
               className="mono-numbers"
             />
+            {setMonthlyGoalMutation.isPending && (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            )}
           </div>
         </div>
 
@@ -275,21 +391,23 @@ function ScenarioPlanner() {
         <Separator />
 
         {/* Scenario 2: Signature Latte Focus */}
-        <div className="space-y-3">
-          <Label>Scenario: Signature Latte Push</Label>
-          <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <p className="text-sm mb-3">
-              To reach <strong className="text-primary">${targetProfit.toLocaleString()}</strong> monthly profit:
-            </p>
-            <div className="flex items-center gap-2 text-lg font-semibold">
-              <ArrowRight className="h-5 w-5 text-primary" />
-              <span>Sell <span className="text-primary mono-numbers">{additionalSignatureNeeded}</span> more Signature Lattes/week</span>
+        {signatureLatte && (
+          <div className="space-y-3">
+            <Label>Scenario: {signatureLatte.itemName} Push</Label>
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <p className="text-sm mb-3">
+                To reach <strong className="text-primary">${targetProfit.toLocaleString()}</strong> monthly profit:
+              </p>
+              <div className="flex items-center gap-2 text-lg font-semibold">
+                <ArrowRight className="h-5 w-5 text-primary" />
+                <span>Sell <span className="text-primary mono-numbers">{Math.max(0, additionalSignatureNeeded)}</span> more {signatureLatte.itemName}/week</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Each {signatureLatte.itemName} contributes ${latteProfit.toFixed(2)} profit
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Each Signature Latte contributes ${(signatureLatte.price - signatureLatte.cost).toFixed(2)} profit
-            </p>
           </div>
-        </div>
+        )}
 
         <Separator />
 
@@ -300,8 +418,8 @@ function ScenarioPlanner() {
             <div>
               <p className="font-medium text-sm mb-1">AI Recommendation</p>
               <p className="text-sm text-muted-foreground">
-                Based on current trends, focus on upselling Signature Lattes during peak hours (12-1PM, 6PM) 
-                and introduce a limited-time promotion for Strawberry Matcha to clear inventory. 
+                Based on current trends, focus on upselling {signatureLatte?.itemName || 'top items'} during peak hours (12-1PM, 6PM) 
+                and introduce a limited-time promotion for seasonal items to clear inventory. 
                 Combined, this could increase monthly profit by approximately 18%.
               </p>
             </div>
@@ -312,9 +430,39 @@ function ScenarioPlanner() {
   );
 }
 
-// Menu optimization proposals
-function MenuOptimization() {
-  const lowPerformers = menuItems.filter((item) => item.trending === 'down' || item.margin < 60);
+// Menu optimization proposals - uses real data
+function MenuOptimization({ profitabilityData, isLoading }: { 
+  profitabilityData: Array<{
+    menuItemId: string;
+    itemName: string;
+    margin: number;
+    totalQuantity: number;
+  }> | undefined;
+  isLoading: boolean;
+}) {
+  if (isLoading || !profitabilityData) {
+    return (
+      <Card className="wabi-card animate-fade-up">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Utensils className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg font-serif">Menu Optimization</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-20 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Find low performers (low margin or low volume)
+  const avgMargin = profitabilityData.reduce((sum, i) => sum + i.margin, 0) / profitabilityData.length;
+  const avgVolume = profitabilityData.reduce((sum, i) => sum + i.totalQuantity, 0) / profitabilityData.length;
+  
+  const lowPerformers = profitabilityData.filter(
+    item => item.margin < avgMargin * 0.8 || item.totalQuantity < avgVolume * 0.5
+  ).slice(0, 3);
 
   return (
     <Card className="wabi-card animate-fade-up">
@@ -323,24 +471,24 @@ function MenuOptimization() {
           <Utensils className="h-5 w-5 text-primary" />
           <CardTitle className="text-lg font-serif">Menu Optimization</CardTitle>
         </div>
-        <CardDescription>AI-suggested menu improvements</CardDescription>
+        <CardDescription>AI-suggested menu improvements based on real data</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {lowPerformers.length > 0 && (
           <div className="space-y-3">
             <p className="text-sm font-medium text-muted-foreground">Items Needing Attention</p>
             {lowPerformers.map((item) => (
-              <div key={item.id} className="p-3 bg-muted/30 rounded-lg">
+              <div key={item.menuItemId} className="p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-medium">{item.itemName}</span>
                   <Badge variant="outline" className="text-xs">
                     {item.margin.toFixed(1)}% margin
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {item.trending === 'down' 
-                    ? 'Declining sales trend - consider promotion or recipe refresh'
-                    : 'Low margin - review ingredient costs or adjust pricing'}
+                  {item.margin < avgMargin * 0.8 
+                    ? 'Low margin - review ingredient costs or adjust pricing'
+                    : 'Low volume - consider promotion or recipe refresh'}
                 </p>
               </div>
             ))}
@@ -375,7 +523,86 @@ function MenuOptimization() {
   );
 }
 
+// Generate dynamic recommendations based on real data
+function generateRecommendations(
+  metrics: { currentMonthProfit: number; monthlyProfitGoal: number; wastageThisMonth: number } | undefined,
+  profitabilityData: Array<{ itemName: string; margin: number; totalQuantity: number; totalProfit: number }> | undefined
+): StrategicRecommendation[] {
+  if (!metrics || !profitabilityData || profitabilityData.length === 0) {
+    return [];
+  }
+
+  const recommendations: StrategicRecommendation[] = [];
+  
+  // Find top seller
+  const topSeller = [...profitabilityData].sort((a, b) => b.totalQuantity - a.totalQuantity)[0];
+  
+  // Find highest margin item
+  const highestMargin = [...profitabilityData].sort((a, b) => b.margin - a.margin)[0];
+  
+  // Find lowest performer
+  const lowestPerformer = [...profitabilityData].sort((a, b) => a.totalProfit - b.totalProfit)[0];
+
+  // Recommendation 1: Push high-margin item
+  if (highestMargin && highestMargin.margin > 70) {
+    recommendations.push({
+      id: 'rec-1',
+      type: 'upsell',
+      title: `Push ${highestMargin.itemName}`,
+      description: `With ${highestMargin.margin.toFixed(1)}% margin, increasing sales of this item will significantly boost profits. Train staff on upselling techniques.`,
+      impact: `+$${(highestMargin.totalProfit * 0.15).toFixed(0)}/week potential`,
+      priority: 'high'
+    });
+  }
+
+  // Recommendation 2: Address wastage
+  if (metrics.wastageThisMonth > 50) {
+    recommendations.push({
+      id: 'rec-2',
+      type: 'promotion',
+      title: 'Reduce Ingredient Wastage',
+      description: `$${metrics.wastageThisMonth.toFixed(0)} in potential wastage detected. Consider flash sales or bundle deals for items using near-expiry ingredients.`,
+      impact: `Save $${(metrics.wastageThisMonth * 0.7).toFixed(0)} in waste`,
+      priority: 'high'
+    });
+  }
+
+  // Recommendation 3: Review low performer
+  if (lowestPerformer && lowestPerformer.totalProfit < profitabilityData.reduce((s, i) => s + i.totalProfit, 0) / profitabilityData.length * 0.5) {
+    recommendations.push({
+      id: 'rec-3',
+      type: 'pricing',
+      title: `Review ${lowestPerformer.itemName} Pricing`,
+      description: `This item is underperforming. Consider price adjustment, recipe optimization, or limited-time removal to focus on higher performers.`,
+      impact: 'Improve menu efficiency',
+      priority: 'medium'
+    });
+  }
+
+  // Recommendation 4: Capitalize on top seller
+  if (topSeller) {
+    recommendations.push({
+      id: 'rec-4',
+      type: 'menu',
+      title: `Expand ${topSeller.itemName} Line`,
+      description: `Your top seller could have seasonal variants or size options to capture more revenue from existing demand.`,
+      impact: `+10-15% category revenue`,
+      priority: 'medium'
+    });
+  }
+
+  return recommendations;
+}
+
 export default function Strategy() {
+  const metricsQuery = trpc.metrics.business.useQuery();
+  const profitabilityQuery = trpc.sales.profitability.useQuery();
+
+  const recommendations = generateRecommendations(
+    metricsQuery.data,
+    profitabilityQuery.data
+  );
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -387,7 +614,7 @@ export default function Strategy() {
           <div>
             <h1 className="text-2xl font-serif font-semibold">Strategic Insights</h1>
             <p className="text-muted-foreground">
-              AI-powered recommendations and scenario planning for maximum profitability
+              AI-powered recommendations and scenario planning based on real-time data
             </p>
           </div>
         </div>
@@ -396,13 +623,23 @@ export default function Strategy() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            <MonthlyReview />
-            <MenuOptimization />
+            <MonthlyReview 
+              metrics={metricsQuery.data} 
+              isLoading={metricsQuery.isLoading} 
+            />
+            <MenuOptimization 
+              profitabilityData={profitabilityQuery.data} 
+              isLoading={profitabilityQuery.isLoading} 
+            />
           </div>
 
           {/* Right Column */}
           <div className="space-y-6">
-            <ScenarioPlanner />
+            <ScenarioPlanner 
+              metrics={metricsQuery.data}
+              profitabilityData={profitabilityQuery.data}
+              isLoading={metricsQuery.isLoading || profitabilityQuery.isLoading}
+            />
           </div>
         </div>
 
@@ -410,13 +647,24 @@ export default function Strategy() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-serif font-semibold">Action Recommendations</h2>
-            <Badge variant="outline">{strategicRecommendations.length} suggestions</Badge>
+            <Badge variant="outline">
+              {recommendations.length} suggestions
+            </Badge>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {strategicRecommendations.map((rec) => (
-              <RecommendationCard key={rec.id} recommendation={rec} />
-            ))}
-          </div>
+          {recommendations.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {recommendations.map((rec) => (
+                <RecommendationCard key={rec.id} recommendation={rec} />
+              ))}
+            </div>
+          ) : (
+            <Card className="wabi-card">
+              <CardContent className="p-8 text-center text-muted-foreground">
+                <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Upload sales and inventory data to generate personalized recommendations</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </DashboardLayout>

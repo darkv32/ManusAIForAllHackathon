@@ -1,0 +1,280 @@
+date,menuItemName,milkType,quantity,unitPrice,paymentMethod
+2026-01-01,Signature Matcha Latte,Meiji Fresh Milk,45,8.50,Credit Card
+2026-01-01,Signature Matcha Latte,Oatly Barista Edition,28,9.00,Credit Card
+2026-01-01,Premium Ceremonial Bowl,,22,12.00,Credit Card
+2026-01-01,Iced Matcha,Meiji Fresh Milk,35,6.50,Apple Pay
+2026-01-01,Oat Matcha Latte,Oatly Barista Edition,32,9.00,Credit Card
+2026-01-01,Strawberry Matcha,Meiji Fresh Milk,18,9.50,Cash
+2026-01-01,Honey Foam Matcha,Meiji Fresh Milk,15,10.00,Credit Card
+2026-01-01,Matcha Affogato,,12,11.50,Apple Pay
+2026-01-01,Houjicha Latte,Meiji Fresh Milk,25,7.00,Cash
+2026-01-02,Signature Matcha Latte,Meiji Fresh Milk,42,8.50,Credit Card
+2026-01-02,Signature Matcha Latte,Oatly Barista Edition,30,9.00,Apple Pay
+2026-01-02,Premium Ceremonial Bowl,,18,12.00,Credit Card
+2026-01-02,Iced Matcha,Meiji Fresh Milk,38,6.50,Credit Card
+2026-01-02,Oat Matcha Latte,Oatly Barista Edition,35,9.00,Apple Pay
+2026-01-02,Strawberry Matcha,Meiji Fresh Milk,22,9.50,Credit Card
+2026-01-02,Honey Foam Matcha,Meiji Fresh Milk,18,10.00,Cash
+2026-01-02,Matcha Affogato,,10,11.50,Credit Card
+2026-01-02,Houjicha Latte,Meiji Fresh Milk,28,7.00,Credit Card
+2026-01-03,Signature Matcha Latte,Meiji Fresh Milk,48,8.50,Credit Card
+2026-01-03,Signature Matcha Latte,Oatly Barista Edition,32,9.00,Credit Card
+2026-01-03,Premium Ceremonial Bowl,,25,12.00,Apple Pay
+2026-01-03,Iced Matcha,Meiji Fresh Milk,42,6.50,Credit Card
+2026-01-03,Oat Matcha Latte,Oatly Barista Edition,38,9.00,Credit Card
+2026-01-03,Strawberry Matcha,Meiji Fresh Milk,28,9.50,Cash
+2026-01-03,Honey Foam Matcha,Meiji Fresh Milk,20,10.00,Credit Card
+2026-01-03,Matcha Affogato,,15,11.50,Apple Pay
+2026-01-03,Houjicha Latte,Meiji Fresh Milk,30,7.00,Credit Card
+2026-01-04,Signature Matcha Latte,Meiji Fresh Milk,65,8.50,Credit Card
+2026-01-04,Signature Matcha Latte,Oatly Barista Edition,45,9.00,Apple Pay
+2026-01-04,Premium Ceremonial Bowl,,35,12.00,Credit Card
+2026-01-04,Iced Matcha,Meiji Fresh Milk,55,6.50,Credit Card
+2026-01-04,Oat Matcha Latte,Oatly Barista Edition,48,9.00,Credit Card
+2026-01-04,Strawberry Matcha,Meiji Fresh Milk,38,9.50,Apple Pay
+2026-01-04,Honey Foam Matcha,Meiji Fresh Milk,28,10.00,Credit Card
+2026-01-04,Matcha Affogato,,22,11.50,Cash
+2026-01-04,Houjicha Latte,Meiji Fresh Milk,42,7.00,Credit Card
+2026-01-05,Signature Matcha Latte,Meiji Fresh Milk,72,8.50,Credit Card
+2026-01-05,Signature Matcha Latte,Oatly Barista Edition,52,9.00,Credit Card
+2026-01-05,Premium Ceremonial Bowl,,40,12.00,Apple Pay
+2026-01-05,Iced Matcha,Meiji Fresh Milk,62,6.50,Credit Card
+2026-01-05,Oat Matcha Latte,Oatly Barista Edition,55,9.00,Apple Pay
+2026-01-05,Strawberry Matcha,Meiji Fresh Milk,45,9.50,Credit Card
+2026-01-05,Honey Foam Matcha,Meiji Fresh Milk,32,10.00,Cash
+2026-01-05,Matcha Affogato,,28,11.50,Credit Card
+2026-01-05,Houjicha Latte,Meiji Fresh Milk,48,7.00,Credit Card
+2026-01-06,Signature Matcha Latte,Meiji Fresh Milk,40,8.50,Credit Card
+2026-01-06,Signature Matcha Latte,Oatly Barista Edition,25,9.00,Apple Pay
+2026-01-06,Premium Ceremonial Bowl,,15,12.00,Credit Card
+2026-01-06,Iced Matcha,Meiji Fresh Milk,32,6.50,Credit Card
+2026-01-06,Oat Matcha Latte,Oatly Barista Edition,28,9.00,Credit Card
+2026-01-06,Strawberry Matcha,Meiji Fresh Milk,18,9.50,Cash
+2026-01-06,Honey Foam Matcha,Meiji Fresh Milk,12,10.00,Credit Card
+2026-01-06,Matcha Affogato,,8,11.50,Apple Pay
+2026-01-06,Houjicha Latte,Meiji Fresh Milk,22,7.00,Credit Card
+2026-01-07,Signature Matcha Latte,Meiji Fresh Milk,38,8.50,Credit Card
+2026-01-07,Signature Matcha Latte,Oatly Barista Edition,22,9.00,Credit Card
+2026-01-07,Premium Ceremonial Bowl,,12,12.00,Credit Card
+2026-01-07,Iced Matcha,Meiji Fresh Milk,28,6.50,Apple Pay
+2026-01-07,Oat Matcha Latte,Oatly Barista Edition,25,9.00,Credit Card
+2026-01-07,Strawberry Matcha,Meiji Fresh Milk,15,9.50,Credit Card
+2026-01-07,Honey Foam Matcha,Meiji Fresh Milk,10,10.00,Cash
+2026-01-07,Matcha Affogato,,6,11.50,Credit Card
+2026-01-07,Houjicha Latte,Meiji Fresh Milk,20,7.00,Credit Card
+2026-01-08,Signature Matcha Latte,Meiji Fresh Milk,50,8.50,Credit Card
+2026-01-08,Signature Matcha Latte,Oatly Barista Edition,35,9.00,Apple Pay
+2026-01-08,Premium Ceremonial Bowl,,28,12.00,Credit Card
+2026-01-08,Iced Matcha,Meiji Fresh Milk,45,6.50,Credit Card
+2026-01-08,Oat Matcha Latte,Oatly Barista Edition,40,9.00,Credit Card
+2026-01-08,Strawberry Matcha,Meiji Fresh Milk,32,9.50,Apple Pay
+2026-01-08,Honey Foam Matcha,Meiji Fresh Milk,22,10.00,Credit Card
+2026-01-08,Matcha Affogato,,18,11.50,Cash
+2026-01-08,Houjicha Latte,Meiji Fresh Milk,35,7.00,Credit Card
+2026-01-09,Signature Matcha Latte,Meiji Fresh Milk,52,8.50,Credit Card
+2026-01-09,Signature Matcha Latte,Oatly Barista Edition,38,9.00,Credit Card
+2026-01-09,Premium Ceremonial Bowl,,30,12.00,Apple Pay
+2026-01-09,Iced Matcha,Meiji Fresh Milk,48,6.50,Credit Card
+2026-01-09,Oat Matcha Latte,Oatly Barista Edition,42,9.00,Apple Pay
+2026-01-09,Strawberry Matcha,Meiji Fresh Milk,35,9.50,Credit Card
+2026-01-09,Honey Foam Matcha,Meiji Fresh Milk,25,10.00,Cash
+2026-01-09,Matcha Affogato,,20,11.50,Credit Card
+2026-01-09,Houjicha Latte,Meiji Fresh Milk,38,7.00,Credit Card
+2026-01-10,Signature Matcha Latte,Meiji Fresh Milk,55,8.50,Credit Card
+2026-01-10,Signature Matcha Latte,Oatly Barista Edition,40,9.00,Apple Pay
+2026-01-10,Premium Ceremonial Bowl,,32,12.00,Credit Card
+2026-01-10,Iced Matcha,Meiji Fresh Milk,50,6.50,Credit Card
+2026-01-10,Oat Matcha Latte,Oatly Barista Edition,45,9.00,Credit Card
+2026-01-10,Strawberry Matcha,Meiji Fresh Milk,38,9.50,Apple Pay
+2026-01-10,Honey Foam Matcha,Meiji Fresh Milk,28,10.00,Credit Card
+2026-01-10,Matcha Affogato,,22,11.50,Cash
+2026-01-10,Houjicha Latte,Meiji Fresh Milk,40,7.00,Credit Card
+2026-01-11,Signature Matcha Latte,Meiji Fresh Milk,70,8.50,Credit Card
+2026-01-11,Signature Matcha Latte,Oatly Barista Edition,55,9.00,Credit Card
+2026-01-11,Premium Ceremonial Bowl,,42,12.00,Apple Pay
+2026-01-11,Iced Matcha,Meiji Fresh Milk,65,6.50,Credit Card
+2026-01-11,Oat Matcha Latte,Oatly Barista Edition,58,9.00,Apple Pay
+2026-01-11,Strawberry Matcha,Meiji Fresh Milk,48,9.50,Credit Card
+2026-01-11,Honey Foam Matcha,Meiji Fresh Milk,35,10.00,Cash
+2026-01-11,Matcha Affogato,,30,11.50,Credit Card
+2026-01-11,Houjicha Latte,Meiji Fresh Milk,52,7.00,Credit Card
+2026-01-12,Signature Matcha Latte,Meiji Fresh Milk,75,8.50,Credit Card
+2026-01-12,Signature Matcha Latte,Oatly Barista Edition,58,9.00,Apple Pay
+2026-01-12,Premium Ceremonial Bowl,,45,12.00,Credit Card
+2026-01-12,Iced Matcha,Meiji Fresh Milk,68,6.50,Credit Card
+2026-01-12,Oat Matcha Latte,Oatly Barista Edition,62,9.00,Credit Card
+2026-01-12,Strawberry Matcha,Meiji Fresh Milk,52,9.50,Apple Pay
+2026-01-12,Honey Foam Matcha,Meiji Fresh Milk,38,10.00,Credit Card
+2026-01-12,Matcha Affogato,,32,11.50,Cash
+2026-01-12,Houjicha Latte,Meiji Fresh Milk,55,7.00,Credit Card
+2026-01-13,Signature Matcha Latte,Meiji Fresh Milk,42,8.50,Credit Card
+2026-01-13,Signature Matcha Latte,Oatly Barista Edition,28,9.00,Credit Card
+2026-01-13,Premium Ceremonial Bowl,,18,12.00,Credit Card
+2026-01-13,Iced Matcha,Meiji Fresh Milk,35,6.50,Apple Pay
+2026-01-13,Oat Matcha Latte,Oatly Barista Edition,30,9.00,Credit Card
+2026-01-13,Strawberry Matcha,Meiji Fresh Milk,20,9.50,Credit Card
+2026-01-13,Honey Foam Matcha,Meiji Fresh Milk,14,10.00,Cash
+2026-01-13,Matcha Affogato,,10,11.50,Credit Card
+2026-01-13,Houjicha Latte,Meiji Fresh Milk,25,7.00,Credit Card
+2026-01-14,Signature Matcha Latte,Meiji Fresh Milk,40,8.50,Credit Card
+2026-01-14,Signature Matcha Latte,Oatly Barista Edition,25,9.00,Apple Pay
+2026-01-14,Premium Ceremonial Bowl,,15,12.00,Credit Card
+2026-01-14,Iced Matcha,Meiji Fresh Milk,32,6.50,Credit Card
+2026-01-14,Oat Matcha Latte,Oatly Barista Edition,28,9.00,Credit Card
+2026-01-14,Strawberry Matcha,Meiji Fresh Milk,18,9.50,Apple Pay
+2026-01-14,Honey Foam Matcha,Meiji Fresh Milk,12,10.00,Credit Card
+2026-01-14,Matcha Affogato,,8,11.50,Cash
+2026-01-14,Houjicha Latte,Meiji Fresh Milk,22,7.00,Credit Card
+2026-01-15,Signature Matcha Latte,Meiji Fresh Milk,58,8.50,Credit Card
+2026-01-15,Signature Matcha Latte,Oatly Barista Edition,42,9.00,Credit Card
+2026-01-15,Premium Ceremonial Bowl,,35,12.00,Apple Pay
+2026-01-15,Iced Matcha,Meiji Fresh Milk,52,6.50,Credit Card
+2026-01-15,Oat Matcha Latte,Oatly Barista Edition,48,9.00,Apple Pay
+2026-01-15,Strawberry Matcha,Meiji Fresh Milk,40,9.50,Credit Card
+2026-01-15,Honey Foam Matcha,Meiji Fresh Milk,30,10.00,Cash
+2026-01-15,Matcha Affogato,,25,11.50,Credit Card
+2026-01-15,Houjicha Latte,Meiji Fresh Milk,42,7.00,Credit Card
+2026-01-16,Signature Matcha Latte,Meiji Fresh Milk,60,8.50,Credit Card
+2026-01-16,Signature Matcha Latte,Oatly Barista Edition,45,9.00,Apple Pay
+2026-01-16,Premium Ceremonial Bowl,,38,12.00,Credit Card
+2026-01-16,Iced Matcha,Meiji Fresh Milk,55,6.50,Credit Card
+2026-01-16,Oat Matcha Latte,Oatly Barista Edition,50,9.00,Credit Card
+2026-01-16,Strawberry Matcha,Meiji Fresh Milk,42,9.50,Apple Pay
+2026-01-16,Honey Foam Matcha,Meiji Fresh Milk,32,10.00,Credit Card
+2026-01-16,Matcha Affogato,,28,11.50,Cash
+2026-01-16,Houjicha Latte,Meiji Fresh Milk,45,7.00,Credit Card
+2026-01-17,Signature Matcha Latte,Meiji Fresh Milk,62,8.50,Credit Card
+2026-01-17,Signature Matcha Latte,Oatly Barista Edition,48,9.00,Credit Card
+2026-01-17,Premium Ceremonial Bowl,,40,12.00,Apple Pay
+2026-01-17,Iced Matcha,Meiji Fresh Milk,58,6.50,Credit Card
+2026-01-17,Oat Matcha Latte,Oatly Barista Edition,52,9.00,Apple Pay
+2026-01-17,Strawberry Matcha,Meiji Fresh Milk,45,9.50,Credit Card
+2026-01-17,Honey Foam Matcha,Meiji Fresh Milk,35,10.00,Cash
+2026-01-17,Matcha Affogato,,30,11.50,Credit Card
+2026-01-17,Houjicha Latte,Meiji Fresh Milk,48,7.00,Credit Card
+2026-01-18,Signature Matcha Latte,Meiji Fresh Milk,78,8.50,Credit Card
+2026-01-18,Signature Matcha Latte,Oatly Barista Edition,62,9.00,Apple Pay
+2026-01-18,Premium Ceremonial Bowl,,50,12.00,Credit Card
+2026-01-18,Iced Matcha,Meiji Fresh Milk,72,6.50,Credit Card
+2026-01-18,Oat Matcha Latte,Oatly Barista Edition,65,9.00,Credit Card
+2026-01-18,Strawberry Matcha,Meiji Fresh Milk,55,9.50,Apple Pay
+2026-01-18,Honey Foam Matcha,Meiji Fresh Milk,42,10.00,Credit Card
+2026-01-18,Matcha Affogato,,35,11.50,Cash
+2026-01-18,Houjicha Latte,Meiji Fresh Milk,58,7.00,Credit Card
+2026-01-19,Signature Matcha Latte,Meiji Fresh Milk,82,8.50,Credit Card
+2026-01-19,Signature Matcha Latte,Oatly Barista Edition,65,9.00,Credit Card
+2026-01-19,Premium Ceremonial Bowl,,52,12.00,Apple Pay
+2026-01-19,Iced Matcha,Meiji Fresh Milk,75,6.50,Credit Card
+2026-01-19,Oat Matcha Latte,Oatly Barista Edition,68,9.00,Apple Pay
+2026-01-19,Strawberry Matcha,Meiji Fresh Milk,58,9.50,Credit Card
+2026-01-19,Honey Foam Matcha,Meiji Fresh Milk,45,10.00,Cash
+2026-01-19,Matcha Affogato,,38,11.50,Credit Card
+2026-01-19,Houjicha Latte,Meiji Fresh Milk,62,7.00,Credit Card
+2026-01-20,Signature Matcha Latte,Meiji Fresh Milk,45,8.50,Credit Card
+2026-01-20,Signature Matcha Latte,Oatly Barista Edition,30,9.00,Apple Pay
+2026-01-20,Premium Ceremonial Bowl,,20,12.00,Credit Card
+2026-01-20,Iced Matcha,Meiji Fresh Milk,38,6.50,Credit Card
+2026-01-20,Oat Matcha Latte,Oatly Barista Edition,32,9.00,Credit Card
+2026-01-20,Strawberry Matcha,Meiji Fresh Milk,22,9.50,Apple Pay
+2026-01-20,Honey Foam Matcha,Meiji Fresh Milk,15,10.00,Credit Card
+2026-01-20,Matcha Affogato,,12,11.50,Cash
+2026-01-20,Houjicha Latte,Meiji Fresh Milk,28,7.00,Credit Card
+2026-01-21,Signature Matcha Latte,Meiji Fresh Milk,42,8.50,Credit Card
+2026-01-21,Signature Matcha Latte,Oatly Barista Edition,28,9.00,Credit Card
+2026-01-21,Premium Ceremonial Bowl,,18,12.00,Credit Card
+2026-01-21,Iced Matcha,Meiji Fresh Milk,35,6.50,Apple Pay
+2026-01-21,Oat Matcha Latte,Oatly Barista Edition,30,9.00,Credit Card
+2026-01-21,Strawberry Matcha,Meiji Fresh Milk,20,9.50,Credit Card
+2026-01-21,Honey Foam Matcha,Meiji Fresh Milk,14,10.00,Cash
+2026-01-21,Matcha Affogato,,10,11.50,Credit Card
+2026-01-21,Houjicha Latte,Meiji Fresh Milk,25,7.00,Credit Card
+2026-01-22,Signature Matcha Latte,Meiji Fresh Milk,55,8.50,Credit Card
+2026-01-22,Signature Matcha Latte,Oatly Barista Edition,40,9.00,Apple Pay
+2026-01-22,Premium Ceremonial Bowl,,32,12.00,Credit Card
+2026-01-22,Iced Matcha,Meiji Fresh Milk,50,6.50,Credit Card
+2026-01-22,Oat Matcha Latte,Oatly Barista Edition,45,9.00,Credit Card
+2026-01-22,Strawberry Matcha,Meiji Fresh Milk,38,9.50,Apple Pay
+2026-01-22,Honey Foam Matcha,Meiji Fresh Milk,28,10.00,Credit Card
+2026-01-22,Matcha Affogato,,22,11.50,Cash
+2026-01-22,Houjicha Latte,Meiji Fresh Milk,40,7.00,Credit Card
+2026-01-23,Signature Matcha Latte,Meiji Fresh Milk,58,8.50,Credit Card
+2026-01-23,Signature Matcha Latte,Oatly Barista Edition,42,9.00,Credit Card
+2026-01-23,Premium Ceremonial Bowl,,35,12.00,Apple Pay
+2026-01-23,Iced Matcha,Meiji Fresh Milk,52,6.50,Credit Card
+2026-01-23,Oat Matcha Latte,Oatly Barista Edition,48,9.00,Apple Pay
+2026-01-23,Strawberry Matcha,Meiji Fresh Milk,40,9.50,Credit Card
+2026-01-23,Honey Foam Matcha,Meiji Fresh Milk,30,10.00,Cash
+2026-01-23,Matcha Affogato,,25,11.50,Credit Card
+2026-01-23,Houjicha Latte,Meiji Fresh Milk,42,7.00,Credit Card
+2026-01-24,Signature Matcha Latte,Meiji Fresh Milk,60,8.50,Credit Card
+2026-01-24,Signature Matcha Latte,Oatly Barista Edition,45,9.00,Apple Pay
+2026-01-24,Premium Ceremonial Bowl,,38,12.00,Credit Card
+2026-01-24,Iced Matcha,Meiji Fresh Milk,55,6.50,Credit Card
+2026-01-24,Oat Matcha Latte,Oatly Barista Edition,50,9.00,Credit Card
+2026-01-24,Strawberry Matcha,Meiji Fresh Milk,42,9.50,Apple Pay
+2026-01-24,Honey Foam Matcha,Meiji Fresh Milk,32,10.00,Credit Card
+2026-01-24,Matcha Affogato,,28,11.50,Cash
+2026-01-24,Houjicha Latte,Meiji Fresh Milk,45,7.00,Credit Card
+2026-01-25,Signature Matcha Latte,Meiji Fresh Milk,85,8.50,Credit Card
+2026-01-25,Signature Matcha Latte,Oatly Barista Edition,68,9.00,Credit Card
+2026-01-25,Premium Ceremonial Bowl,,55,12.00,Apple Pay
+2026-01-25,Iced Matcha,Meiji Fresh Milk,78,6.50,Credit Card
+2026-01-25,Oat Matcha Latte,Oatly Barista Edition,72,9.00,Apple Pay
+2026-01-25,Strawberry Matcha,Meiji Fresh Milk,62,9.50,Credit Card
+2026-01-25,Honey Foam Matcha,Meiji Fresh Milk,48,10.00,Cash
+2026-01-25,Matcha Affogato,,42,11.50,Credit Card
+2026-01-25,Houjicha Latte,Meiji Fresh Milk,65,7.00,Credit Card
+2026-01-26,Signature Matcha Latte,Meiji Fresh Milk,88,8.50,Credit Card
+2026-01-26,Signature Matcha Latte,Oatly Barista Edition,72,9.00,Apple Pay
+2026-01-26,Premium Ceremonial Bowl,,58,12.00,Credit Card
+2026-01-26,Iced Matcha,Meiji Fresh Milk,82,6.50,Credit Card
+2026-01-26,Oat Matcha Latte,Oatly Barista Edition,75,9.00,Credit Card
+2026-01-26,Strawberry Matcha,Meiji Fresh Milk,65,9.50,Apple Pay
+2026-01-26,Honey Foam Matcha,Meiji Fresh Milk,52,10.00,Credit Card
+2026-01-26,Matcha Affogato,,45,11.50,Cash
+2026-01-26,Houjicha Latte,Meiji Fresh Milk,68,7.00,Credit Card
+2026-01-27,Signature Matcha Latte,Meiji Fresh Milk,48,8.50,Credit Card
+2026-01-27,Signature Matcha Latte,Oatly Barista Edition,32,9.00,Credit Card
+2026-01-27,Premium Ceremonial Bowl,,22,12.00,Credit Card
+2026-01-27,Iced Matcha,Meiji Fresh Milk,40,6.50,Apple Pay
+2026-01-27,Oat Matcha Latte,Oatly Barista Edition,35,9.00,Credit Card
+2026-01-27,Strawberry Matcha,Meiji Fresh Milk,25,9.50,Credit Card
+2026-01-27,Honey Foam Matcha,Meiji Fresh Milk,18,10.00,Cash
+2026-01-27,Matcha Affogato,,14,11.50,Credit Card
+2026-01-27,Houjicha Latte,Meiji Fresh Milk,30,7.00,Credit Card
+2026-01-28,Signature Matcha Latte,Meiji Fresh Milk,45,8.50,Credit Card
+2026-01-28,Signature Matcha Latte,Oatly Barista Edition,30,9.00,Apple Pay
+2026-01-28,Premium Ceremonial Bowl,,20,12.00,Credit Card
+2026-01-28,Iced Matcha,Meiji Fresh Milk,38,6.50,Credit Card
+2026-01-28,Oat Matcha Latte,Oatly Barista Edition,32,9.00,Credit Card
+2026-01-28,Strawberry Matcha,Meiji Fresh Milk,22,9.50,Apple Pay
+2026-01-28,Honey Foam Matcha,Meiji Fresh Milk,15,10.00,Credit Card
+2026-01-28,Matcha Affogato,,12,11.50,Cash
+2026-01-28,Houjicha Latte,Meiji Fresh Milk,28,7.00,Credit Card
+2026-01-29,Signature Matcha Latte,Meiji Fresh Milk,92,8.50,Credit Card
+2026-01-29,Signature Matcha Latte,Oatly Barista Edition,75,9.00,Credit Card
+2026-01-29,Premium Ceremonial Bowl,,60,12.00,Apple Pay
+2026-01-29,Iced Matcha,Meiji Fresh Milk,85,6.50,Credit Card
+2026-01-29,Oat Matcha Latte,Oatly Barista Edition,78,9.00,Apple Pay
+2026-01-29,Strawberry Matcha,Meiji Fresh Milk,68,9.50,Credit Card
+2026-01-29,Honey Foam Matcha,Meiji Fresh Milk,55,10.00,Cash
+2026-01-29,Matcha Affogato,,48,11.50,Credit Card
+2026-01-29,Houjicha Latte,Meiji Fresh Milk,72,7.00,Credit Card
+2026-01-30,Signature Matcha Latte,Meiji Fresh Milk,95,8.50,Credit Card
+2026-01-30,Signature Matcha Latte,Oatly Barista Edition,78,9.00,Apple Pay
+2026-01-30,Premium Ceremonial Bowl,,62,12.00,Credit Card
+2026-01-30,Iced Matcha,Meiji Fresh Milk,88,6.50,Credit Card
+2026-01-30,Oat Matcha Latte,Oatly Barista Edition,82,9.00,Credit Card
+2026-01-30,Strawberry Matcha,Meiji Fresh Milk,72,9.50,Apple Pay
+2026-01-30,Honey Foam Matcha,Meiji Fresh Milk,58,10.00,Credit Card
+2026-01-30,Matcha Affogato,,50,11.50,Cash
+2026-01-30,Houjicha Latte,Meiji Fresh Milk,75,7.00,Credit Card
+2026-01-31,Signature Matcha Latte,Meiji Fresh Milk,52,8.50,Credit Card
+2026-01-31,Signature Matcha Latte,Oatly Barista Edition,38,9.00,Credit Card
+2026-01-31,Premium Ceremonial Bowl,,28,12.00,Apple Pay
+2026-01-31,Iced Matcha,Meiji Fresh Milk,45,6.50,Credit Card
+2026-01-31,Oat Matcha Latte,Oatly Barista Edition,40,9.00,Apple Pay
+2026-01-31,Strawberry Matcha,Meiji Fresh Milk,32,9.50,Credit Card
+2026-01-31,Honey Foam Matcha,Meiji Fresh Milk,25,10.00,Cash
+2026-01-31,Matcha Affogato,,20,11.50,Credit Card
+2026-01-31,Houjicha Latte,Meiji Fresh Milk,35,7.00,Credit Card

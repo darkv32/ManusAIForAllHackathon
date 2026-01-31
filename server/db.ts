@@ -660,11 +660,11 @@ export async function getIngredientAnalytics(ingredientId: string): Promise<Ingr
     }
   }
   
-  // Get last 14 days of usage
+  // Get last 30 days of usage for monthly average
   const today = new Date();
   const dailyUsageHistory: { date: string; usage: number }[] = [];
   
-  for (let i = 13; i >= 0; i--) {
+  for (let i = 29; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split('T')[0];
@@ -674,21 +674,27 @@ export async function getIngredientAnalytics(ingredientId: string): Promise<Ingr
     });
   }
   
-  // Calculate average daily usage (last 7 days)
-  const last7Days = dailyUsageHistory.slice(-7);
-  const last7DaysUsage = last7Days.reduce((sum, d) => sum + d.usage, 0);
-  const averageDailyUsage = last7DaysUsage / 7;
+  // Calculate average daily usage (past 30 days for more accurate projections)
+  const daysWithData = dailyUsageHistory.filter(d => d.usage > 0).length;
+  const totalMonthUsage = dailyUsageHistory.reduce((sum, d) => sum + d.usage, 0);
+  // Use actual days with data if less than 30, minimum 1 to avoid division by zero
+  const effectiveDays = Math.max(daysWithData, 1);
+  const averageDailyUsage = totalMonthUsage / effectiveDays;
   
-  // Calculate velocity trend (compare last 7 days vs previous 7 days)
-  const prev7Days = dailyUsageHistory.slice(0, 7);
-  const prev7DaysUsage = prev7Days.reduce((sum, d) => sum + d.usage, 0);
-  const prev7DaysAvg = prev7DaysUsage / 7;
+  // Calculate velocity trend (compare last 15 days vs previous 15 days)
+  const last15Days = dailyUsageHistory.slice(-15);
+  const last15DaysUsage = last15Days.reduce((sum, d) => sum + d.usage, 0);
+  const last15DaysAvg = last15DaysUsage / 15;
+  
+  const prev15Days = dailyUsageHistory.slice(0, 15);
+  const prev15DaysUsage = prev15Days.reduce((sum, d) => sum + d.usage, 0);
+  const prev15DaysAvg = prev15DaysUsage / 15;
   
   let velocityTrend: 'increasing' | 'stable' | 'decreasing' = 'stable';
   let velocityChangePercent = 0;
   
-  if (prev7DaysAvg > 0) {
-    velocityChangePercent = ((averageDailyUsage - prev7DaysAvg) / prev7DaysAvg) * 100;
+  if (prev15DaysAvg > 0) {
+    velocityChangePercent = ((last15DaysAvg - prev15DaysAvg) / prev15DaysAvg) * 100;
     if (velocityChangePercent > 10) {
       velocityTrend = 'increasing';
     } else if (velocityChangePercent < -10) {
@@ -709,9 +715,9 @@ export async function getIngredientAnalytics(ingredientId: string): Promise<Ingr
   
   // Generate stock history (simulated based on usage)
   const stockHistory: { date: string; stock: number }[] = [];
-  let simulatedStock = currentStock + last7DaysUsage; // Estimate starting stock
+  let simulatedStock = currentStock + last15DaysUsage; // Estimate starting stock
   
-  for (const day of last7Days) {
+  for (const day of last15Days) {
     simulatedStock -= day.usage;
     stockHistory.push({
       date: day.date,
@@ -1166,4 +1172,153 @@ export async function getProcurementOrderList(): Promise<ProcurementOrderItem[]>
   });
   
   return orderList;
+}
+
+
+// ============ BUSINESS METRICS (for Strategy page sync) ============
+
+export interface BusinessMetrics {
+  monthlyProfitGoal: number;
+  currentMonthProfit: number;
+  lastMonthProfit: number;
+  profitGrowth: number;
+  avgDailyRevenue: number;
+  avgDailyOrders: number;
+  topSellingItem: string;
+  highestMarginItem: string;
+  inventoryValue: number;
+  wastageThisMonth: number;
+}
+
+export async function getBusinessMetrics(): Promise<BusinessMetrics> {
+  const db = await getDb();
+  
+  // Get monthly profit goal from settings
+  const monthlyProfitGoal = await getMonthlyProfitGoal();
+  
+  // Get all sales data
+  const allSales = db ? await db.select().from(sales) : [];
+  const allIngredients = await getAllIngredients();
+  const allMenuItems = await getAllMenuItems();
+  const allRecipes = await getAllRecipes();
+  
+  // Calculate date ranges
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  
+  // Build recipe cost map
+  const recipeCostMap = new Map<string, number>();
+  for (const recipe of allRecipes) {
+    const ingredient = allIngredients.find(i => i.ingredientId === recipe.ingredientId);
+    if (ingredient) {
+      const costPerUnit = Number(ingredient.costPerUnit);
+      const quantity = Number(recipe.quantity);
+      const existingCost = recipeCostMap.get(recipe.menuItemId) || 0;
+      recipeCostMap.set(recipe.menuItemId, existingCost + (costPerUnit * quantity));
+    }
+  }
+  
+  // Filter sales by month
+  const currentMonthSales = allSales.filter(s => new Date(s.timestamp) >= currentMonthStart);
+  const lastMonthSales = allSales.filter(s => {
+    const date = new Date(s.timestamp);
+    return date >= lastMonthStart && date <= lastMonthEnd;
+  });
+  
+  // Calculate current month metrics
+  let currentMonthRevenue = 0;
+  let currentMonthCost = 0;
+  let currentMonthOrders = 0;
+  const itemSalesCount = new Map<string, { name: string; count: number; profit: number; margin: number }>();
+  
+  for (const sale of currentMonthSales) {
+    const revenue = Number(sale.totalSales);
+    const cogs = recipeCostMap.get(sale.menuItemId) || 0;
+    const profit = revenue - (cogs * sale.quantity);
+    
+    currentMonthRevenue += revenue;
+    currentMonthCost += cogs * sale.quantity;
+    currentMonthOrders += sale.quantity;
+    
+    const existing = itemSalesCount.get(sale.menuItemId) || { name: sale.itemName, count: 0, profit: 0, margin: 0 };
+    existing.count += sale.quantity;
+    existing.profit += profit;
+    itemSalesCount.set(sale.menuItemId, existing);
+  }
+  
+  // Calculate margins for each item
+  for (const [itemId, data] of Array.from(itemSalesCount)) {
+    const menuItem = allMenuItems.find(m => m.itemId === itemId);
+    if (menuItem) {
+      const cogs = recipeCostMap.get(itemId) || 0;
+      const price = Number(menuItem.salesPrice);
+      data.margin = price > 0 ? ((price - cogs) / price) * 100 : 0;
+    }
+  }
+  
+  const currentMonthProfit = currentMonthRevenue - currentMonthCost;
+  
+  // Calculate last month profit
+  let lastMonthRevenue = 0;
+  let lastMonthCost = 0;
+  
+  for (const sale of lastMonthSales) {
+    const revenue = Number(sale.totalSales);
+    const cogs = recipeCostMap.get(sale.menuItemId) || 0;
+    lastMonthRevenue += revenue;
+    lastMonthCost += cogs * sale.quantity;
+  }
+  
+  const lastMonthProfit = lastMonthRevenue - lastMonthCost;
+  
+  // Calculate profit growth
+  const profitGrowth = lastMonthProfit > 0 
+    ? ((currentMonthProfit - lastMonthProfit) / lastMonthProfit) * 100 
+    : 0;
+  
+  // Calculate average daily metrics
+  const daysInCurrentMonth = Math.max(1, Math.ceil((now.getTime() - currentMonthStart.getTime()) / (24 * 60 * 60 * 1000)));
+  const avgDailyRevenue = currentMonthRevenue / daysInCurrentMonth;
+  const avgDailyOrders = currentMonthOrders / daysInCurrentMonth;
+  
+  // Find top selling item
+  const sortedByCount = Array.from(itemSalesCount.entries()).sort((a, b) => b[1].count - a[1].count);
+  const topSellingItem = sortedByCount[0]?.[1]?.name || 'No data';
+  
+  // Find highest margin item
+  const sortedByMargin = Array.from(itemSalesCount.entries()).sort((a, b) => b[1].margin - a[1].margin);
+  const highestMarginItem = sortedByMargin[0]?.[1]?.name || 'No data';
+  
+  // Calculate inventory value
+  const inventoryValue = allIngredients.reduce((sum, i) => {
+    return sum + (Number(i.currentStock) * Number(i.costPerUnit));
+  }, 0);
+  
+  // Estimate wastage (items near expiry with low usage)
+  let wastageThisMonth = 0;
+  for (const ingredient of allIngredients) {
+    if (ingredient.expiryDate) {
+      const expiryDate = new Date(ingredient.expiryDate);
+      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+      if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
+        // Estimate 20% of near-expiry stock as potential waste
+        wastageThisMonth += Number(ingredient.currentStock) * Number(ingredient.costPerUnit) * 0.2;
+      }
+    }
+  }
+  
+  return {
+    monthlyProfitGoal,
+    currentMonthProfit: Math.round(currentMonthProfit * 100) / 100,
+    lastMonthProfit: Math.round(lastMonthProfit * 100) / 100,
+    profitGrowth: Math.round(profitGrowth * 10) / 10,
+    avgDailyRevenue: Math.round(avgDailyRevenue * 100) / 100,
+    avgDailyOrders: Math.round(avgDailyOrders),
+    topSellingItem,
+    highestMarginItem,
+    inventoryValue: Math.round(inventoryValue * 100) / 100,
+    wastageThisMonth: Math.round(wastageThisMonth * 100) / 100,
+  };
 }

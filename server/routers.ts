@@ -699,6 +699,13 @@ Please provide your strategic recommendations with detailed recipes for new drin
       return await db.getProcurementOrderList();
     }),
   }),
+
+  // ============ BUSINESS METRICS ============
+  metrics: router({
+    business: publicProcedure.query(async () => {
+      return await db.getBusinessMetrics();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
