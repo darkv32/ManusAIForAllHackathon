@@ -36,18 +36,49 @@ interface NavItem {
   badge?: string;
 }
 
-const navItems: NavItem[] = [
-  { title: 'Overview', href: '/', icon: <Home className="h-[18px] w-[18px]" /> },
-  { title: 'Inventory', href: '/inventory', icon: <Box className="h-[18px] w-[18px]" /> },
-  { title: 'Sales', href: '/sales', icon: <DollarSign className="h-[18px] w-[18px]" /> },
-  { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-[18px] w-[18px]" /> },
-  { title: 'Order Command', href: '/procurement', icon: <ClipboardList className="h-[18px] w-[18px]" />, badge: '5' },
-  { title: 'Menu Analytics', href: '/menu', icon: <BarChart3 className="h-[18px] w-[18px]" /> },
-  { title: 'Strategy', href: '/strategy', icon: <Lightbulb className="h-[18px] w-[18px]" />, badge: '4' },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+// Grouped navigation for better organization
+// Group 1: Dashboard - Overview and high-level insights
+// Group 2: Inventory & Procurement - Stock management and ordering
+// Group 3: Sales & Finance - Revenue, profitability, and menu performance
+// Group 4: Operations - Day-to-day tasks and settings
+
+const navGroups: NavGroup[] = [
+  {
+    label: 'Dashboard',
+    items: [
+      { title: 'Overview', href: '/', icon: <Home className="h-[18px] w-[18px]" /> },
+    ]
+  },
+  {
+    label: 'Inventory & Procurement',
+    items: [
+      { title: 'Inventory', href: '/inventory', icon: <Box className="h-[18px] w-[18px]" /> },
+      { title: 'Order Command', href: '/procurement', icon: <ClipboardList className="h-[18px] w-[18px]" />, badge: '5' },
+      { title: 'Stock Input', href: '/stock-input', icon: <Package className="h-[18px] w-[18px]" /> },
+    ]
+  },
+  {
+    label: 'Sales & Finance',
+    items: [
+      { title: 'Sales', href: '/sales', icon: <DollarSign className="h-[18px] w-[18px]" /> },
+      { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-[18px] w-[18px]" /> },
+      { title: 'Menu Analytics', href: '/menu', icon: <BarChart3 className="h-[18px] w-[18px]" /> },
+    ]
+  },
+  {
+    label: 'Strategy & Insights',
+    items: [
+      { title: 'Strategy', href: '/strategy', icon: <Lightbulb className="h-[18px] w-[18px]" />, badge: '4' },
+    ]
+  },
 ];
 
 const bottomNavItems: NavItem[] = [
-  { title: 'Stock Input', href: '/stock-input', icon: <Package className="h-[18px] w-[18px]" /> },
   { title: 'Settings', href: '/settings', icon: <Settings className="h-[18px] w-[18px]" /> },
 ];
 
@@ -131,16 +162,31 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
         </div>
 
         {/* Navigation */}
-        <ScrollArea className="flex-1 py-6">
-          <nav className="px-4 space-y-1">
-            {navItems.map((item) => (
-              <NavLink key={item.href} item={item} collapsed={collapsed} />
-            ))}
-          </nav>
+        <ScrollArea className="flex-1 py-4">
+          {navGroups.map((group, groupIndex) => (
+            <div key={group.label}>
+              {/* Group Label */}
+              {!collapsed && (
+                <div className="px-5 pt-4 pb-2">
+                  <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-widest">
+                    {group.label}
+                  </span>
+                </div>
+              )}
+              {collapsed && groupIndex > 0 && (
+                <div className="ink-divider my-3 mx-3" />
+              )}
+              <nav className="px-4 space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink key={item.href} item={item} collapsed={collapsed} />
+                ))}
+              </nav>
+            </div>
+          ))}
 
-          <div className="ink-divider my-6 mx-4" />
+          <div className="ink-divider my-4 mx-4" />
 
-          <nav className="px-4 space-y-1">
+          <nav className="px-4 space-y-0.5">
             {bottomNavItems.map((item) => (
               <NavLink key={item.href} item={item} collapsed={collapsed} />
             ))}
@@ -205,16 +251,26 @@ function MobileNav() {
           </div>
 
           {/* Navigation */}
-          <ScrollArea className="flex-1 py-6">
-            <nav className="px-4 space-y-1">
-              {navItems.map((item) => (
-                <NavLink key={item.href} item={item} collapsed={false} />
-              ))}
-            </nav>
+          <ScrollArea className="flex-1 py-4">
+            {navGroups.map((group) => (
+              <div key={group.label}>
+                {/* Group Label */}
+                <div className="px-5 pt-4 pb-2">
+                  <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-widest">
+                    {group.label}
+                  </span>
+                </div>
+                <nav className="px-4 space-y-0.5">
+                  {group.items.map((item) => (
+                    <NavLink key={item.href} item={item} collapsed={false} />
+                  ))}
+                </nav>
+              </div>
+            ))}
 
-            <div className="ink-divider my-6 mx-4" />
+            <div className="ink-divider my-4 mx-4" />
 
-            <nav className="px-4 space-y-1">
+            <nav className="px-4 space-y-0.5">
               {bottomNavItems.map((item) => (
                 <NavLink key={item.href} item={item} collapsed={false} />
               ))}
