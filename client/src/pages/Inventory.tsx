@@ -4,6 +4,7 @@
  * - Clean data tables with soft styling
  * - Visual stock level indicators
  * - Category-based organization
+ * - CSV import functionality
  */
 
 import DashboardLayout from '@/components/DashboardLayout';
@@ -13,11 +14,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { inventoryItems, type InventoryItem } from '@/lib/mockData';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { parseIngredientsCSV, type IngredientRecord } from '@/lib/csvParser';
+import { inventoryItems as defaultInventoryItems, type InventoryItem } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Box, Calendar, Filter, Leaf, Milk, Package, Search, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import {
+  AlertTriangle,
+  Box,
+  Calendar,
+  FileSpreadsheet,
+  Filter,
+  Leaf,
+  Milk,
+  Package,
+  Search,
+  Sparkles,
+  Upload,
+  X
+} from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 // Category icons mapping
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -27,6 +43,24 @@ const categoryIcons: Record<string, React.ReactNode> = {
   equipment: <Package className="h-4 w-4" />,
   other: <Box className="h-4 w-4" />
 };
+
+// Convert IngredientRecord to InventoryItem format
+function convertToInventoryItem(record: IngredientRecord): InventoryItem {
+  return {
+    id: record.ingredient_id,
+    name: record.name,
+    category: record.category.toLowerCase() as InventoryItem['category'],
+    unit: record.unit,
+    currentStock: record.current_stock,
+    minStock: Math.floor(record.current_stock * 0.3), // Default min stock to 30% of current
+    maxStock: Math.ceil(record.current_stock * 2), // Default max stock to 2x current
+    costPerUnit: record.cost_per_unit,
+    supplier: 'Imported via CSV',
+    shelfLife: 'long' as const,
+    expiryDate: undefined,
+    lastRestocked: new Date().toISOString().split('T')[0]
+  };
+}
 
 // Stock level indicator component
 function StockLevelIndicator({ item }: { item: InventoryItem }) {
@@ -70,7 +104,7 @@ function InventoryCard({ item }: { item: InventoryItem }) {
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              {categoryIcons[item.category]}
+              {categoryIcons[item.category] || categoryIcons.other}
             </div>
             <div>
               <h3 className="font-medium text-sm">{item.name}</h3>
@@ -133,7 +167,7 @@ function InventoryRow({ item }: { item: InventoryItem }) {
       <td className="py-3 px-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10 text-primary">
-            {categoryIcons[item.category]}
+            {categoryIcons[item.category] || categoryIcons.other}
           </div>
           <div>
             <p className="font-medium">{item.name}</p>
@@ -174,11 +208,11 @@ function InventoryRow({ item }: { item: InventoryItem }) {
   );
 }
 
-// Summary cards
-function InventorySummary() {
-  const totalValue = inventoryItems.reduce((sum, item) => sum + item.currentStock * item.costPerUnit, 0);
-  const lowStockCount = inventoryItems.filter((item) => item.currentStock <= item.minStock).length;
-  const expiringCount = inventoryItems.filter(
+// Summary cards component
+function InventorySummary({ items }: { items: InventoryItem[] }) {
+  const totalValue = items.reduce((sum, item) => sum + item.currentStock * item.costPerUnit, 0);
+  const lowStockCount = items.filter((item) => item.currentStock <= item.minStock).length;
+  const expiringCount = items.filter(
     (item) => item.expiryDate && new Date(item.expiryDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   ).length;
 
@@ -231,6 +265,51 @@ export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(defaultInventoryItems);
+  const [isUsingImportedData, setIsUsingImportedData] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Handle CSV file upload
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Please upload a CSV file');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const data = await parseIngredientsCSV(file);
+      if (data.length === 0) {
+        toast.error('No valid data found in CSV');
+        return;
+      }
+      
+      // Convert to InventoryItem format
+      const convertedItems = data.map(convertToInventoryItem);
+      setInventoryItems(convertedItems);
+      setIsUsingImportedData(true);
+      toast.success(`Successfully imported ${data.length} ingredients`);
+    } catch (error) {
+      toast.error('Failed to parse CSV file');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, []);
+
+  // Reset to default data
+  const handleResetData = useCallback(() => {
+    setInventoryItems(defaultInventoryItems);
+    setIsUsingImportedData(false);
+    toast.info('Restored default inventory data');
+  }, []);
 
   const filteredItems = useMemo(() => {
     return inventoryItems.filter((item) => {
@@ -239,9 +318,11 @@ export default function Inventory() {
       const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, categoryFilter]);
+  }, [searchQuery, categoryFilter, inventoryItems]);
 
-  const categories = ['all', ...Array.from(new Set(inventoryItems.map((item) => item.category)))];
+  const categories = useMemo(() => {
+    return ['all', ...Array.from(new Set(inventoryItems.map((item) => item.category)))];
+  }, [inventoryItems]);
 
   return (
     <DashboardLayout>
@@ -252,10 +333,60 @@ export default function Inventory() {
             <h1 className="text-2xl font-serif font-semibold">Inventory Management</h1>
             <p className="text-muted-foreground">Track stock levels and manage your ingredients</p>
           </div>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              className="hidden"
+              id="inventory-csv-upload"
+            />
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              {isLoading ? 'Importing...' : 'Import CSV'}
+            </Button>
+            {isUsingImportedData && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResetData}
+                className="gap-1 text-muted-foreground"
+              >
+                <X className="h-4 w-4" />
+                Reset
+              </Button>
+            )}
+          </div>
         </div>
 
+        {/* Import Status Banner */}
+        {isUsingImportedData && (
+          <Card className="wabi-card bg-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <FileSpreadsheet className="h-5 w-5 text-primary" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Using Imported Data</p>
+                  <p className="text-xs text-muted-foreground">
+                    Showing {inventoryItems.length} ingredients from your CSV file
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleResetData}>
+                  Restore Defaults
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Summary Cards */}
-        <InventorySummary />
+        <InventorySummary items={inventoryItems} />
 
         {/* Filters and Controls */}
         <Card className="wabi-card">
@@ -290,6 +421,22 @@ export default function Inventory() {
                     <TabsTrigger value="table">Table</TabsTrigger>
                   </TabsList>
                 </Tabs>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* CSV Format Help */}
+        <Card className="wabi-card">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <FileSpreadsheet className="h-5 w-5 text-primary mt-0.5" />
+              <div>
+                <p className="text-sm font-medium mb-1">CSV Import Format</p>
+                <p className="text-xs text-muted-foreground">
+                  Upload <code className="bg-muted px-1 py-0.5 rounded">ingredients.csv</code> with headers: 
+                  <code className="bg-muted px-1 py-0.5 rounded ml-1">ingredient_id, name, category, unit, cost_per_unit, current_stock</code>
+                </p>
               </div>
             </div>
           </CardContent>

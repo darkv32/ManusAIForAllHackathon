@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  DollarSign,
   Home,
   Lightbulb,
   Menu,
@@ -37,6 +38,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { title: 'Overview', href: '/', icon: <Home className="h-5 w-5" /> },
   { title: 'Inventory', href: '/inventory', icon: <Box className="h-5 w-5" /> },
+  { title: 'Sales', href: '/sales', icon: <DollarSign className="h-5 w-5" /> },
   { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-5 w-5" /> },
   { title: 'Order Command', href: '/procurement', icon: <ClipboardList className="h-5 w-5" />, badge: '5' },
   { title: 'Menu Analytics', href: '/menu', icon: <BarChart3 className="h-5 w-5" /> },

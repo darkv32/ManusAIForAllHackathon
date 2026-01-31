@@ -9,6 +9,7 @@ import Inventory from "./pages/Inventory";
 import MenuAnalytics from "./pages/MenuAnalytics";
 import Procurement from "./pages/Procurement";
 import Profitability from "./pages/Profitability";
+import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
 import StockInput from "./pages/StockInput";
 import Strategy from "./pages/Strategy";
@@ -18,6 +19,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/inventory" component={Inventory} />
+      <Route path="/sales" component={Sales} />
       <Route path="/profitability" component={Profitability} />
       <Route path="/procurement" component={Procurement} />
       <Route path="/menu" component={MenuAnalytics} />
