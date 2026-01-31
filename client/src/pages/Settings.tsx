@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  AlertTriangle,
   Bell,
   Building2,
   Calendar,
@@ -30,8 +31,21 @@ import {
   Settings as SettingsIcon,
   Shield,
   Store,
+  Trash2,
   User
 } from 'lucide-react';
+import { useData } from '@/contexts/DataContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -320,6 +334,102 @@ function SystemInfo() {
   );
 }
 
+// Data Management - Clear All Data
+function DataManagement() {
+  const { resetInventoryData, resetSalesData, isInventoryImported, isSalesImported } = useData();
+
+  const handleClearAllData = () => {
+    resetInventoryData();
+    resetSalesData();
+    toast.success('All data has been cleared successfully!');
+  };
+
+  const hasImportedData = isInventoryImported || isSalesImported;
+
+  return (
+    <Card className="wabi-card border-destructive/20">
+      <CardHeader>
+        <CardTitle className="text-lg font-serif flex items-center gap-2 text-destructive">
+          <Trash2 className="h-5 w-5" />
+          Data Management
+        </CardTitle>
+        <CardDescription>Manage your imported data and storage</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Data Status */}
+        <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Inventory Data</span>
+            <Badge variant="outline" className={isInventoryImported ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-gray-50 text-gray-500 border-gray-200"}>
+              {isInventoryImported ? 'Imported' : 'Default'}
+            </Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Sales Data</span>
+            <Badge variant="outline" className={isSalesImported ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-gray-50 text-gray-500 border-gray-200"}>
+              {isSalesImported ? 'Imported' : 'No Data'}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Warning */}
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium text-sm text-amber-800">Caution</p>
+              <p className="text-sm text-amber-700">
+                Clearing all data will remove all imported inventory and sales records. This action cannot be undone.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Clear All Data Button with Confirmation */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              disabled={!hasImportedData}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear All Data
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Clear All Data?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete all imported inventory and sales data from your browser. 
+                The dashboard will reset to default mock data. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleClearAllData}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Yes, Clear All Data
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {!hasImportedData && (
+          <p className="text-xs text-muted-foreground text-center">
+            No imported data to clear. Upload CSV files on the Inventory or Sales pages first.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Settings() {
   return (
     <DashboardLayout>
@@ -339,6 +449,7 @@ export default function Settings() {
             <TabsTrigger value="goals">Goals</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="data">Data</TabsTrigger>
           </TabsList>
 
           <TabsContent value="business" className="space-y-6">
@@ -362,6 +473,10 @@ export default function Settings() {
 
           <TabsContent value="security" className="space-y-6">
             <SecuritySettings />
+          </TabsContent>
+
+          <TabsContent value="data" className="space-y-6">
+            <DataManagement />
           </TabsContent>
         </Tabs>
       </div>
