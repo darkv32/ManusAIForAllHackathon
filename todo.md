@@ -126,3 +126,10 @@
 - [x] Calculate ingredient consumption from sales transactions using recipe quantities
 - [x] Ensure past 30 days of sales data is used for average daily usage
 - [x] Use most recent sales date as reference point for historical data compatibility
+
+
+## Strategic Insights Profit Calculation
+- [x] Update Strategic Insights to show current profit from actual sales data
+- [x] Calculate profit as revenue minus COGS from sales transactions
+- [x] Sync profit data between Strategy page and Sales tab
+- [x] Use most recent sales date as reference for historical data compatibility

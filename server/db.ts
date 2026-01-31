@@ -1229,11 +1229,19 @@ export async function getBusinessMetrics(): Promise<BusinessMetrics> {
   const allMenuItems = await getAllMenuItems();
   const allRecipes = await getAllRecipes();
   
-  // Calculate date ranges
-  const now = new Date();
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  // Calculate date ranges - use most recent sales date as reference for historical data compatibility
+  let referenceDate = new Date();
+  if (allSales.length > 0) {
+    // Find the most recent sale date
+    const sortedSales = [...allSales].sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    referenceDate = new Date(sortedSales[0].timestamp);
+  }
+  
+  const currentMonthStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
+  const lastMonthStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 0);
   
   // Build recipe cost map
   const recipeCostMap = new Map<string, number>();
@@ -1306,7 +1314,7 @@ export async function getBusinessMetrics(): Promise<BusinessMetrics> {
     : 0;
   
   // Calculate average daily metrics
-  const daysInCurrentMonth = Math.max(1, Math.ceil((now.getTime() - currentMonthStart.getTime()) / (24 * 60 * 60 * 1000)));
+  const daysInCurrentMonth = Math.max(1, Math.ceil((referenceDate.getTime() - currentMonthStart.getTime()) / (24 * 60 * 60 * 1000)));
   const avgDailyRevenue = currentMonthRevenue / daysInCurrentMonth;
   const avgDailyOrders = currentMonthOrders / daysInCurrentMonth;
   
@@ -1328,7 +1336,7 @@ export async function getBusinessMetrics(): Promise<BusinessMetrics> {
   for (const ingredient of allIngredients) {
     if (ingredient.expiryDate) {
       const expiryDate = new Date(ingredient.expiryDate);
-      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - referenceDate.getTime()) / (24 * 60 * 60 * 1000));
       if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
         // Estimate 20% of near-expiry stock as potential waste
         wastageThisMonth += Number(ingredient.currentStock) * Number(ingredient.costPerUnit) * 0.2;
