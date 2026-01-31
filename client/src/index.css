@@ -82,20 +82,20 @@
   --popover-foreground: oklch(0.28 0.08 145);
   --secondary: oklch(0.945 0.012 90);
   --secondary-foreground: oklch(0.32 0.08 145);
-  --muted: oklch(0.935 0.008 90);
+  --muted: oklch(0.92 0.012 90);
   --muted-foreground: oklch(0.45 0.06 145);
   --accent: oklch(0.92 0.02 145);
   --accent-foreground: oklch(0.28 0.08 145);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.90 0.012 90);
-  --input: oklch(0.94 0.008 90);
+  --border: oklch(0.82 0.025 90);
+  --input: oklch(0.92 0.012 90);
   --ring: oklch(0.35 0.12 145);
   --sidebar: oklch(0.985 0.006 90);
   --sidebar-foreground: oklch(0.28 0.08 145);
   --sidebar-accent: oklch(0.94 0.018 145);
   --sidebar-accent-foreground: oklch(0.28 0.08 145);
-  --sidebar-border: oklch(0.92 0.010 90);
+  --sidebar-border: oklch(0.80 0.020 90);
   --sidebar-ring: oklch(0.35 0.12 145);
 }
 
@@ -142,6 +142,12 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     letter-spacing: -0.01em;
+    /* Subtle background pattern for depth */
+    background-image: 
+      radial-gradient(circle at 25% 25%, oklch(0.35 0.12 145 / 0.015) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, oklch(0.35 0.12 145 / 0.012) 0%, transparent 50%),
+      linear-gradient(180deg, oklch(0.975 0.008 90) 0%, oklch(0.965 0.010 90) 100%);
+    background-attachment: fixed;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
@@ -194,21 +200,21 @@
     }
   }
   
-  /* Premium Matsu Card Style - refined elegance */
+  /* Premium Matsu Card Style - refined elegance with stronger borders */
   .wabi-card {
     @apply bg-card rounded-md;
-    border: 1px solid oklch(0.35 0.12 145 / 0.08);
+    border: 1px solid oklch(0.35 0.12 145 / 0.18);
     box-shadow: 
-      0 1px 3px oklch(0.35 0.12 145 / 0.04),
-      0 4px 12px oklch(0.35 0.12 145 / 0.03);
+      0 1px 3px oklch(0.35 0.12 145 / 0.06),
+      0 4px 12px oklch(0.35 0.12 145 / 0.04);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .wabi-card:hover {
-    border-color: oklch(0.35 0.12 145 / 0.15);
+    border-color: oklch(0.35 0.12 145 / 0.28);
     box-shadow: 
-      0 2px 6px oklch(0.35 0.12 145 / 0.06),
-      0 8px 24px oklch(0.35 0.12 145 / 0.05);
+      0 2px 6px oklch(0.35 0.12 145 / 0.08),
+      0 8px 24px oklch(0.35 0.12 145 / 0.06);
     transform: translateY(-1px);
   }
   
