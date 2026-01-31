@@ -983,12 +983,36 @@ export async function generateSuggestedPromotions(): Promise<SuggestedPromotion[
     : 30;
   
   // Filter overstocked ingredients - only food ingredients (exclude packaging, equipment, supplies)
+  // Identify ingredients that have been in excess for more than 1 week
+  // An ingredient is considered "in excess for a week" if:
+  // 1. Current days of stock > 30 days (excess threshold)
+  // 2. Even with last week's usage, it would still have been in excess
   const overstockedIngredients = foodIngredients.filter(i => {
     const totalUsage = ingredientUsage.get(i.ingredientId) || 0;
     const dailyUsage = totalUsage / salesDays;
     const currentStock = parseFloat(String(i.currentStock || 0));
     const daysOfStock = dailyUsage > 0 ? currentStock / dailyUsage : 999;
-    return daysOfStock > 60; // More than 60 days of stock
+    
+    // Check if ingredient has been in excess for more than a week
+    // If current stock + 7 days of usage would still give > 30 days of stock,
+    // then it was already in excess a week ago
+    const stockOneWeekAgo = currentStock + (dailyUsage * 7);
+    const daysOfStockOneWeekAgo = dailyUsage > 0 ? stockOneWeekAgo / dailyUsage : 999;
+    const wasExcessLastWeek = daysOfStockOneWeekAgo > 30;
+    
+    // Must be currently in excess (>30 days) AND was in excess a week ago
+    return daysOfStock > 30 && wasExcessLastWeek;
+  }).sort((a, b) => {
+    // Sort by days of stock (most excess first)
+    const usageA = ingredientUsage.get(a.ingredientId) || 0;
+    const usageB = ingredientUsage.get(b.ingredientId) || 0;
+    const dailyA = usageA / salesDays;
+    const dailyB = usageB / salesDays;
+    const stockA = parseFloat(String(a.currentStock || 0));
+    const stockB = parseFloat(String(b.currentStock || 0));
+    const daysA = dailyA > 0 ? stockA / dailyA : 999;
+    const daysB = dailyB > 0 ? stockB / dailyB : 999;
+    return daysB - daysA;
   });
   
   // 3. Find drinks with strong sales trends
@@ -1050,34 +1074,53 @@ export async function generateSuggestedPromotions(): Promise<SuggestedPromotion[
     }
   }
   
-  // Generate suggestions based on overstocked ingredients
-  for (const ingredient of overstockedIngredients.slice(0, 2)) {
+  // Generate suggestions based on overstocked ingredients (in excess for more than 1 week)
+  for (const ingredient of overstockedIngredients.slice(0, 3)) {
     const affectedRecipes = allRecipes.filter(r => r.ingredientId === ingredient.ingredientId);
     const affectedItems = affectedRecipes.map(r => r.menuItemId);
-    const affectedMenuItemNames = allMenuItems
-      .filter(m => affectedItems.includes(m.itemId))
-      .map(m => m.itemName);
     
-    if (affectedMenuItemNames.length > 0) {
+    // Get menu items that use this ingredient, sorted by how much they use
+    const menuItemsWithUsage = affectedRecipes.map(recipe => {
+      const menuItem = allMenuItems.find(m => m.itemId === recipe.menuItemId);
+      return {
+        menuItem,
+        recipe,
+        usagePerServing: parseFloat(String(recipe.quantity))
+      };
+    }).filter(x => x.menuItem).sort((a, b) => b.usagePerServing - a.usagePerServing);
+    
+    if (menuItemsWithUsage.length > 0) {
+      const topMenuItem = menuItemsWithUsage[0].menuItem!;
+      const usagePerServing = menuItemsWithUsage[0].usagePerServing;
+      const currentStock = parseFloat(String(ingredient.currentStock || 0));
+      const totalUsage = ingredientUsage.get(ingredient.ingredientId) || 0;
+      const dailyUsage = totalUsage / salesDays;
+      const daysOfStock = dailyUsage > 0 ? currentStock / dailyUsage : 999;
+      
+      // Calculate how many servings needed to bring stock to healthy level (14 days)
+      const targetStock = dailyUsage * 14;
+      const excessStock = Math.max(0, currentStock - targetStock);
+      const servingsToSell = usagePerServing > 0 ? Math.ceil(excessStock / usagePerServing) : 0;
+      
       suggestions.push({
         id: `overstock-${ingredient.ingredientId}`,
-        title: `Featured: ${affectedMenuItemNames[0]}`,
+        title: `Promote: ${topMenuItem.itemName}`,
         promotionType: 'featured',
         affectedMenuItems: affectedItems,
-        rationale: `${ingredient.name} has excess stock (${parseFloat(String(ingredient.currentStock || 0)).toFixed(0)} ${ingredient.unit}). Featuring drinks that use this ingredient will improve inventory turnover.`,
+        rationale: `${ingredient.name} has been in excess for over a week (${daysOfStock.toFixed(0)} days of stock, ${currentStock.toFixed(0)} ${ingredient.unit}). Promoting ${topMenuItem.itemName} (uses ${usagePerServing} ${ingredient.unit}/serving) will help use up ${excessStock.toFixed(0)} ${ingredient.unit} of excess inventory.`,
         inventoryImpact: {
           ingredientsAffected: [ingredient.ingredientId],
-          percentageConsumed: 30,
-          wasteReduction: 0,
+          percentageConsumed: Math.min(100, Math.round((excessStock / currentStock) * 100)),
+          wasteReduction: excessStock * parseFloat(String(ingredient.costPerUnit)),
         },
         projectedImpact: {
-          salesUplift: 15,
-          profitImpact: parseFloat(String(ingredient.currentStock || 0)) * parseFloat(String(ingredient.costPerUnit)) * 0.3,
-          wasteReduction: 0,
+          salesUplift: 20,
+          profitImpact: servingsToSell * parseFloat(String(topMenuItem.salesPrice)) * 0.7,
+          wasteReduction: excessStock * parseFloat(String(ingredient.costPerUnit)),
         },
-        dataInputs: ['Current stock levels', 'Historical usage rates', 'Recipe mappings'],
-        assumptions: ['Featured placement drives 15% sales increase', 'No discount required'],
-        priority: 'medium',
+        dataInputs: ['Current stock levels', 'Historical usage rates (past 30 days)', 'Recipe ingredient quantities', 'Excess duration analysis'],
+        assumptions: [`Sell ${servingsToSell} additional servings to reach healthy stock level`, 'Featured placement drives 20% sales increase', 'Ingredient has been in excess for 7+ days'],
+        priority: daysOfStock > 60 ? 'high' : 'medium',
       });
     }
   }

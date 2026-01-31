@@ -133,3 +133,23 @@
 - [x] Calculate profit as revenue minus COGS from sales transactions
 - [x] Sync profit data between Strategy page and Sales tab
 - [x] Use most recent sales date as reference for historical data compatibility
+
+
+## Stock Input to Inventory Sync
+- [ ] Ensure Stock Input page updates sync to Inventory page
+- [ ] Update ingredient currentStock in database when stock input is modified
+- [ ] Verify Inventory page reflects stock changes in real-time
+
+
+## AI Promotions Excess Ingredient Suggestions
+- [ ] Update AI promotions to suggest menu items based on excess non-packaging ingredients
+- [ ] Identify ingredients that have been in excess for more than 1 week
+- [ ] Link excess ingredients to menu items that use them via recipes
+- [ ] Prioritize suggestions for items that help use up excess stock faster
+
+
+## Strategy Tab Items Needing Attention
+- [x] Update Strategy page to show items needing attention based on profitability data
+- [x] Show low volume items (lowest selling menu items)
+- [x] Show low margin items (items with margins below target)
+- [x] Draw data from same source as Profitability tab for consistency

@@ -437,6 +437,8 @@ function MenuOptimization({ profitabilityData, isLoading }: {
     itemName: string;
     margin: number;
     totalQuantity: number;
+    totalRevenue: number;
+    totalProfit: number;
   }> | undefined;
   isLoading: boolean;
 }) {
@@ -456,13 +458,61 @@ function MenuOptimization({ profitabilityData, isLoading }: {
     );
   }
 
-  // Find low performers (low margin or low volume)
+  // Calculate averages and find top performers for comparison
   const avgMargin = profitabilityData.reduce((sum, i) => sum + i.margin, 0) / profitabilityData.length;
-  const avgVolume = profitabilityData.reduce((sum, i) => sum + i.totalQuantity, 0) / profitabilityData.length;
+  const avgVolume = profitabilityData.reduce((sum, i) => sum + Number(i.totalQuantity), 0) / profitabilityData.length;
+  const maxMargin = Math.max(...profitabilityData.map(i => i.margin));
+  const maxVolume = Math.max(...profitabilityData.map(i => Number(i.totalQuantity)));
   
-  const lowPerformers = profitabilityData.filter(
-    item => item.margin < avgMargin * 0.8 || item.totalQuantity < avgVolume * 0.5
-  ).slice(0, 3);
+  // Identify items needing attention with specific reasons
+  // Use relative thresholds to always show some items for improvement
+  const itemsNeedingAttention = profitabilityData.map(item => {
+    const itemQuantity = Number(item.totalQuantity);
+    const marginGap = maxMargin - item.margin;
+    const volumeGap = maxVolume - itemQuantity;
+    
+    // Calculate relative performance scores
+    const marginScore = item.margin / maxMargin; // 0-1, higher is better
+    const volumeScore = itemQuantity / maxVolume; // 0-1, higher is better
+    
+    let reason = '';
+    let priority: 'high' | 'medium' | 'low' = 'low';
+    let suggestion = '';
+    
+    // Critical: margin below 60% or volume less than half of average
+    if (item.margin < 60) {
+      reason = `Low margin: ${item.margin.toFixed(1)}% (target: 60%)`;
+      priority = 'high';
+      suggestion = 'Review ingredient costs or increase price';
+    } else if (itemQuantity < avgVolume * 0.5) {
+      reason = `Low volume: ${itemQuantity} sold (avg: ${avgVolume.toFixed(0)})`;
+      priority = 'high';
+      suggestion = 'Consider promotion or recipe refresh';
+    }
+    // Medium: lowest margin items (bottom 25% relative to best)
+    else if (marginScore < 0.85 && marginGap > 5) {
+      reason = `Margin opportunity: ${item.margin.toFixed(1)}% vs best ${maxMargin.toFixed(1)}%`;
+      priority = 'medium';
+      suggestion = `Optimize recipe to gain ${marginGap.toFixed(1)}% margin`;
+    }
+    // Low: lowest volume items (bottom 25% relative to best)
+    else if (volumeScore < 0.92 && volumeGap > 30) {
+      reason = `Sales opportunity: ${itemQuantity} sold vs best ${maxVolume}`;
+      priority = 'low';
+      suggestion = 'Promote more or add to combo deals';
+    }
+    
+    return { ...item, reason, priority, suggestion, needsAttention: reason !== '', marginScore, volumeScore };
+  }).filter(item => item.needsAttention)
+    .sort((a, b) => {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      }
+      // Within same priority, sort by margin score (lower first)
+      return a.marginScore - b.marginScore;
+    })
+    .slice(0, 4);
 
   return (
     <Card className="wabi-card animate-fade-up">
@@ -474,21 +524,41 @@ function MenuOptimization({ profitabilityData, isLoading }: {
         <CardDescription>AI-suggested menu improvements based on real data</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {lowPerformers.length > 0 && (
+        {itemsNeedingAttention.length > 0 && (
           <div className="space-y-3">
-            <p className="text-sm font-medium text-muted-foreground">Items Needing Attention</p>
-            {lowPerformers.map((item) => (
-              <div key={item.menuItemId} className="p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">Items Needing Attention</p>
+              <Badge variant="outline" className="text-xs">
+                {itemsNeedingAttention.length} items
+              </Badge>
+            </div>
+            {itemsNeedingAttention.map((item) => (
+              <div 
+                key={item.menuItemId} 
+                className={cn(
+                  'p-3 rounded-lg border-l-4',
+                  item.priority === 'high' ? 'bg-red-50 border-l-red-500' :
+                  item.priority === 'medium' ? 'bg-amber-50 border-l-amber-500' :
+                  'bg-muted/30 border-l-muted-foreground/30'
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
                   <span className="font-medium">{item.itemName}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {item.margin.toFixed(1)}% margin
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant={item.priority === 'high' ? 'destructive' : 'outline'} 
+                      className="text-xs"
+                    >
+                      {item.priority === 'high' ? 'High Priority' : 
+                       item.priority === 'medium' ? 'Medium' : 'Low'}
+                    </Badge>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {item.margin < avgMargin * 0.8 
-                    ? 'Low margin - review ingredient costs or adjust pricing'
-                    : 'Low volume - consider promotion or recipe refresh'}
+                <p className="text-xs text-muted-foreground mb-1">
+                  {item.reason}
+                </p>
+                <p className="text-xs font-medium text-primary">
+                  → {item.suggestion}
                 </p>
               </div>
             ))}
