@@ -5,31 +5,42 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-
+import Inventory from "./pages/Inventory";
+import MenuAnalytics from "./pages/MenuAnalytics";
+import Procurement from "./pages/Procurement";
+import Profitability from "./pages/Profitability";
+import Settings from "./pages/Settings";
+import StockInput from "./pages/StockInput";
+import Strategy from "./pages/Strategy";
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
+      <Route path="/" component={Home} />
+      <Route path="/inventory" component={Inventory} />
+      <Route path="/profitability" component={Profitability} />
+      <Route path="/procurement" component={Procurement} />
+      <Route path="/menu" component={MenuAnalytics} />
+      <Route path="/strategy" component={Strategy} />
+      <Route path="/stock-input" component={StockInput} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+// Design: Japanese Wabi-Sabi Minimalism
+// - Light theme with warm cream background
+// - Matcha green primary color
+// - Noto Serif/Sans JP typography
+// - Soft shadows and paper-like aesthetics
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
