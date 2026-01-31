@@ -33,6 +33,7 @@ import {
   TrendingUp,
   Upload
 } from 'lucide-react';
+import { useData, type SalesRecord as GlobalSalesRecord } from '@/contexts/DataContext';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Bar,
@@ -496,13 +497,20 @@ function SalesDataTable({ data }: { data: SalesRecord[] }) {
 }
 
 export default function Sales() {
-  const [salesData, setSalesData] = useState<SalesRecord[]>([]);
-  const [hasData, setHasData] = useState(false);
+  // Use global context for sales data persistence
+  const { salesData: globalSalesData, setSalesData: setGlobalSalesData, resetSalesData, isSalesImported } = useData();
+  
+  // Convert global sales data to local type
+  const salesData = globalSalesData as SalesRecord[];
+  const hasData = isSalesImported && salesData.length > 0;
 
   const handleUpload = useCallback((data: SalesRecord[]) => {
-    setSalesData(data);
-    setHasData(true);
-  }, []);
+    setGlobalSalesData(data as GlobalSalesRecord[]);
+  }, [setGlobalSalesData]);
+  
+  const handleReset = useCallback(() => {
+    resetSalesData();
+  }, [resetSalesData]);
 
   return (
     <DashboardLayout>
@@ -527,7 +535,7 @@ export default function Sales() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setHasData(false); setSalesData([]); }}
+                onClick={handleReset}
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Upload New File

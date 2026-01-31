@@ -1,0 +1,21 @@
+transaction_id,timestamp,item_id,item_name,quantity,unit_price,total_sales,payment_method
+TXN001,2026-01-30 09:15:00,ITEM001,Signature Matcha Latte,2,7.50,15.00,Credit Card
+TXN002,2026-01-30 09:22:00,ITEM002,Houjicha Latte,1,6.80,6.80,Cash
+TXN003,2026-01-30 10:05:00,ITEM003,Strawberry Matcha,3,8.20,24.60,Credit Card
+TXN004,2026-01-30 10:30:00,ITEM001,Signature Matcha Latte,1,7.50,7.50,GrabPay
+TXN005,2026-01-30 11:00:00,ITEM004,Oat Matcha Latte,2,8.00,16.00,PayNow
+TXN006,2026-01-30 11:45:00,ITEM005,Premium Ceremonial Bowl,1,12.00,12.00,Credit Card
+TXN007,2026-01-30 12:15:00,ITEM001,Signature Matcha Latte,4,7.50,30.00,Cash
+TXN008,2026-01-30 13:00:00,ITEM006,Honey Foam Matcha,2,8.50,17.00,GrabPay
+TXN009,2026-01-30 14:30:00,ITEM002,Houjicha Latte,1,6.80,6.80,Credit Card
+TXN010,2026-01-30 15:00:00,ITEM003,Strawberry Matcha,2,8.20,16.40,PayNow
+TXN011,2026-01-29 09:30:00,ITEM001,Signature Matcha Latte,3,7.50,22.50,Credit Card
+TXN012,2026-01-29 10:15:00,ITEM004,Oat Matcha Latte,1,8.00,8.00,Cash
+TXN013,2026-01-29 11:00:00,ITEM007,Iced Matcha,2,6.50,13.00,GrabPay
+TXN014,2026-01-29 12:30:00,ITEM001,Signature Matcha Latte,2,7.50,15.00,Credit Card
+TXN015,2026-01-29 14:00:00,ITEM005,Premium Ceremonial Bowl,1,12.00,12.00,PayNow
+TXN016,2026-01-28 09:00:00,ITEM001,Signature Matcha Latte,1,7.50,7.50,Cash
+TXN017,2026-01-28 10:30:00,ITEM003,Strawberry Matcha,2,8.20,16.40,Credit Card
+TXN018,2026-01-28 11:45:00,ITEM006,Honey Foam Matcha,1,8.50,8.50,GrabPay
+TXN019,2026-01-28 13:15:00,ITEM002,Houjicha Latte,2,6.80,13.60,Credit Card
+TXN020,2026-01-28 15:30:00,ITEM004,Oat Matcha Latte,3,8.00,24.00,PayNow

@@ -59,6 +59,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
+import { useData } from '@/contexts/DataContext';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Area,
@@ -686,16 +687,20 @@ type SortField = 'name' | 'daysRemaining' | 'currentStock' | 'value';
 type SortDirection = 'asc' | 'desc';
 
 export default function Inventory() {
+  // Use global context for inventory data persistence
+  const { inventoryData, setInventoryData, resetInventoryData, isInventoryImported } = useData();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('daysRemaining');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(defaultInventoryItems);
-  const [isUsingImportedData, setIsUsingImportedData] = useState(false);
   const [selectedIngredientId, setSelectedIngredientId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Use global inventory data
+  const inventoryItems = inventoryData;
 
   // Handle CSV file upload
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -716,8 +721,7 @@ export default function Inventory() {
       }
 
       const convertedItems = data.map(convertToInventoryItem);
-      setInventoryItems(convertedItems);
-      setIsUsingImportedData(true);
+      setInventoryData(convertedItems);
       toast.success(`Successfully imported ${data.length} ingredients`);
     } catch (error) {
       toast.error('Failed to parse CSV file');
@@ -728,14 +732,13 @@ export default function Inventory() {
         fileInputRef.current.value = '';
       }
     }
-  }, []);
+  }, [setInventoryData]);
 
   // Reset to default data
   const handleResetData = useCallback(() => {
-    setInventoryItems(defaultInventoryItems);
-    setIsUsingImportedData(false);
+    resetInventoryData();
     toast.info('Restored default inventory data');
-  }, []);
+  }, [resetInventoryData]);
 
   // Toggle sort
   const handleSort = (field: SortField) => {
@@ -830,7 +833,7 @@ export default function Inventory() {
               <Upload className="h-4 w-4" />
               {isLoading ? 'Importing...' : 'Import CSV'}
             </Button>
-            {isUsingImportedData && (
+            {isInventoryImported && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -845,7 +848,7 @@ export default function Inventory() {
         </div>
 
         {/* Import Status Banner */}
-        {isUsingImportedData && (
+        {isInventoryImported && (
           <Card className="wabi-card bg-primary/5 border-primary/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
