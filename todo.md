@@ -86,3 +86,15 @@
 - [x] Add promotion activation controls (approve/modify/ignore)
 - [x] Ensure all promotions are advisory only with full user control
 - [x] Add explainability for each suggestion (data inputs, key assumptions)
+
+
+## Order Command Page Improvements
+- [x] Make "Export Order List" button generate actual PDF file
+- [x] Fix order quantity calculation: order qty = projected need - current stock
+- [x] Use sales trends and ingredient data for accurate projected need calculations
+- [x] Ensure all order quantities match the calculated shortage
+
+## AI Suggested Menu Improvements
+- [x] Add exact measurements (grams, ml) for each ingredient in AI recipes
+- [x] Add "Copy Recipe" button to copy recipe details to clipboard
+- [x] Ensure recipe format is clear and actionable for baristas

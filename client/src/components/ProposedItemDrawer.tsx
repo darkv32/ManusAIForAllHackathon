@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import {
   AlertTriangle,
   Check,
+  ClipboardCopy,
   DollarSign,
   Edit3,
   Loader2,
@@ -162,6 +163,41 @@ export default function ProposedItemDrawer({
     });
   }, [drink, editedPrice, totalCogs, projectedMargin, editedRecipe, saveToDraftMutation]);
   
+  // Generate recipe text for clipboard
+  const generateRecipeText = useCallback(() => {
+    if (!drink) return '';
+    
+    let text = `=== ${drink.name} Recipe ===\n\n`;
+    text += `Category: ${drink.category}\n`;
+    text += `Description: ${drink.description}\n\n`;
+    text += `--- INGREDIENTS ---\n`;
+    
+    for (const item of editedRecipe) {
+      const newSourcingNote = item.isNewSourcing ? ' [NEW SOURCING REQUIRED]' : '';
+      text += `• ${item.ingredientName}: ${item.quantity} ${item.unit}${newSourcingNote}\n`;
+    }
+    
+    text += `\n--- COST BREAKDOWN ---\n`;
+    text += `Total COGS: $${totalCogs.toFixed(2)}\n`;
+    text += `Recommended Price: $${editedPrice.toFixed(2)}\n`;
+    text += `Projected Margin: ${projectedMargin.toFixed(1)}%\n\n`;
+    text += `--- STRATEGIC JUSTIFICATION ---\n`;
+    text += `${drink.strategicJustification}\n`;
+    
+    return text;
+  }, [drink, editedRecipe, totalCogs, editedPrice, projectedMargin]);
+  
+  // Handle copy recipe
+  const handleCopyRecipe = useCallback(async () => {
+    const text = generateRecipeText();
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success('Recipe copied to clipboard');
+    } catch {
+      toast.error('Failed to copy recipe');
+    }
+  }, [generateRecipeText]);
+  
   if (!drink) return null;
   
   return (
@@ -260,47 +296,54 @@ export default function ProposedItemDrawer({
               <TableHeader>
                 <TableRow>
                   <TableHead>Ingredient</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
                   <TableHead>Unit</TableHead>
-                  <TableHead className="text-right">Est. Cost</TableHead>
+                  <TableHead className="text-right">Cost/Unit</TableHead>
+                  <TableHead className="text-right">Total Cost</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {editedRecipe.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span>{item.ingredientName}</span>
-                        {item.isNewSourcing && (
-                          <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            New Sourcing
-                          </Badge>
+                {editedRecipe.map((item, index) => {
+                  const costPerUnit = item.quantity > 0 ? item.estimatedCost / item.quantity : 0;
+                  return (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.ingredientName}</span>
+                          {item.isNewSourcing && (
+                            <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              New Sourcing
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            step="1"
+                            min="0"
+                            value={item.quantity}
+                            onChange={(e) => handleQuantityChange(index, Number(e.target.value))}
+                            className="h-8 w-20 mono-numbers text-right"
+                          />
+                        ) : (
+                          <span className="mono-numbers font-semibold">{item.quantity}</span>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {isEditing ? (
-                        <Input
-                          type="number"
-                          step="1"
-                          min="0"
-                          value={item.quantity}
-                          onChange={(e) => handleQuantityChange(index, Number(e.target.value))}
-                          className="h-8 w-16 mono-numbers text-right"
-                        />
-                      ) : (
-                        <span className="mono-numbers">{item.quantity}</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{item.unit}</TableCell>
-                    <TableCell className="text-right mono-numbers">
-                      ${item.estimatedCost.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{item.unit}</TableCell>
+                      <TableCell className="text-right mono-numbers text-muted-foreground">
+                        ${costPerUnit.toFixed(4)}/{item.unit}
+                      </TableCell>
+                      <TableCell className="text-right mono-numbers">
+                        ${item.estimatedCost.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 <TableRow className="font-semibold bg-muted/30">
-                  <TableCell colSpan={3}>Total COGS</TableCell>
+                  <TableCell colSpan={4}>Total COGS</TableCell>
                   <TableCell className="text-right mono-numbers">
                     ${totalCogs.toFixed(2)}
                   </TableCell>
@@ -326,26 +369,36 @@ export default function ProposedItemDrawer({
         </Card>
         
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3">
+            <Button
+              className="flex-1"
+              onClick={handleSaveToDraft}
+              disabled={saveToDraftMutation.isPending}
+            >
+              {saveToDraftMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save to Draft Menu
+                </>
+              )}
+            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </div>
           <Button
-            className="flex-1"
-            onClick={handleSaveToDraft}
-            disabled={saveToDraftMutation.isPending}
+            variant="secondary"
+            className="w-full"
+            onClick={handleCopyRecipe}
           >
-            {saveToDraftMutation.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save to Draft Menu
-              </>
-            )}
-          </Button>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            <ClipboardCopy className="h-4 w-4 mr-2" />
+            Copy Recipe to Clipboard
           </Button>
         </div>
       </SheetContent>

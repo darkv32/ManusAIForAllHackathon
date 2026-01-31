@@ -692,6 +692,13 @@ Please provide your strategic recommendations with detailed recipes for new drin
         return { success: true };
       }),
   }),
+
+  // ============ PROCUREMENT ============
+  procurement: router({
+    orderList: publicProcedure.query(async () => {
+      return await db.getProcurementOrderList();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

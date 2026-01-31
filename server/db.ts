@@ -1078,3 +1078,92 @@ export async function generateSuggestedPromotions(): Promise<SuggestedPromotion[
   
   return suggestions;
 }
+
+
+// ============ PROCUREMENT ORDER LIST ============
+
+export type ProcurementOrderItem = {
+  ingredientId: string;
+  ingredientName: string;
+  category: string;
+  unit: string;
+  currentStock: number;
+  projectedNeed: number;
+  orderQuantity: number;
+  priority: 'urgent' | 'normal' | 'low';
+  orderBy: string;
+  supplier: string;
+  costPerUnit: number;
+  totalCost: number;
+  daysToStockout: number;
+  averageDailyUsage: number;
+};
+
+export async function getProcurementOrderList(): Promise<ProcurementOrderItem[]> {
+  const allAnalytics = await getAllIngredientAnalytics();
+  const orderList: ProcurementOrderItem[] = [];
+  
+  for (const analytics of allAnalytics) {
+    const ingredient = analytics.ingredient;
+    const currentStock = Number(ingredient.currentStock);
+    const averageDailyUsage = analytics.averageDailyUsage;
+    
+    // Calculate projected need for 14 days
+    const targetCoverageDays = 14;
+    const projectedNeed = averageDailyUsage * targetCoverageDays;
+    
+    // Order quantity = projected need - current stock (minimum 0)
+    const orderQuantity = Math.max(0, Math.ceil(projectedNeed - currentStock));
+    
+    // Skip items that don't need ordering
+    if (orderQuantity <= 0 && analytics.daysToStockout > 14) {
+      continue;
+    }
+    
+    // Determine priority based on days to stockout
+    let priority: 'urgent' | 'normal' | 'low' = 'low';
+    const leadTimeDays = ingredient.leadTimeDays || 3;
+    
+    if (analytics.daysToStockout <= leadTimeDays) {
+      priority = 'urgent';
+    } else if (analytics.daysToStockout <= leadTimeDays + 4) {
+      priority = 'normal';
+    }
+    
+    // Calculate order by date
+    const today = new Date();
+    const orderByDays = Math.max(0, analytics.daysToStockout - leadTimeDays - 2);
+    const orderByDate = new Date(today);
+    orderByDate.setDate(orderByDate.getDate() + orderByDays);
+    
+    const costPerUnit = Number(ingredient.costPerUnit);
+    
+    orderList.push({
+      ingredientId: ingredient.ingredientId,
+      ingredientName: ingredient.name,
+      category: ingredient.category,
+      unit: ingredient.unit,
+      currentStock,
+      projectedNeed: Math.ceil(projectedNeed),
+      orderQuantity,
+      priority,
+      orderBy: orderByDate.toISOString().split('T')[0],
+      supplier: ingredient.supplier || 'Unknown',
+      costPerUnit,
+      totalCost: orderQuantity * costPerUnit,
+      daysToStockout: analytics.daysToStockout,
+      averageDailyUsage,
+    });
+  }
+  
+  // Sort by priority (urgent first) then by days to stockout
+  orderList.sort((a, b) => {
+    const priorityOrder = { urgent: 0, normal: 1, low: 2 };
+    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    }
+    return a.daysToStockout - b.daysToStockout;
+  });
+  
+  return orderList;
+}
