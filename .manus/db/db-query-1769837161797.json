@@ -1,0 +1,190 @@
+{
+  "query": "SELECT DISTINCT menuItemId FROM recipes;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT DISTINCT menuItemId FROM recipes;",
+  "rows": [
+    {
+      "menuItemId": "MENU_108"
+    },
+    {
+      "menuItemId": "MENU_111"
+    },
+    {
+      "menuItemId": "MENU_117"
+    },
+    {
+      "menuItemId": "MENU_130"
+    },
+    {
+      "menuItemId": "MENU_008"
+    },
+    {
+      "menuItemId": "MENU_119"
+    },
+    {
+      "menuItemId": "MENU_006"
+    },
+    {
+      "menuItemId": "MENU_121"
+    },
+    {
+      "menuItemId": "MENU_007"
+    },
+    {
+      "menuItemId": "MENU_109"
+    },
+    {
+      "menuItemId": "MENU_128"
+    },
+    {
+      "menuItemId": "MENU_126"
+    },
+    {
+      "menuItemId": "MENU_116"
+    },
+    {
+      "menuItemId": "MENU_135"
+    },
+    {
+      "menuItemId": "MENU_101"
+    },
+    {
+      "menuItemId": "MENU_148"
+    },
+    {
+      "menuItemId": "MENU_123"
+    },
+    {
+      "menuItemId": "MENU_138"
+    },
+    {
+      "menuItemId": "MENU_127"
+    },
+    {
+      "menuItemId": "MENU_136"
+    },
+    {
+      "menuItemId": "MENU_002"
+    },
+    {
+      "menuItemId": "MENU_105"
+    },
+    {
+      "menuItemId": "MENU_131"
+    },
+    {
+      "menuItemId": "MENU_100"
+    },
+    {
+      "menuItemId": "MENU_125"
+    },
+    {
+      "menuItemId": "MENU_104"
+    },
+    {
+      "menuItemId": "MENU_106"
+    },
+    {
+      "menuItemId": "MENU_149"
+    },
+    {
+      "menuItemId": "MENU_140"
+    },
+    {
+      "menuItemId": "MENU_001"
+    },
+    {
+      "menuItemId": "MENU_122"
+    },
+    {
+      "menuItemId": "MENU_004"
+    },
+    {
+      "menuItemId": "MENU_005"
+    },
+    {
+      "menuItemId": "MENU_137"
+    },
+    {
+      "menuItemId": "MENU_142"
+    },
+    {
+      "menuItemId": "MENU_003"
+    },
+    {
+      "menuItemId": "MENU_146"
+    },
+    {
+      "menuItemId": "MENU_118"
+    },
+    {
+      "menuItemId": "MENU_139"
+    },
+    {
+      "menuItemId": "MENU_144"
+    },
+    {
+      "menuItemId": "MENU_141"
+    },
+    {
+      "menuItemId": "MENU_124"
+    },
+    {
+      "menuItemId": "MENU_129"
+    },
+    {
+      "menuItemId": "MENU_115"
+    },
+    {
+      "menuItemId": "MENU_114"
+    },
+    {
+      "menuItemId": "MENU_145"
+    },
+    {
+      "menuItemId": "MENU_113"
+    },
+    {
+      "menuItemId": "MENU_103"
+    },
+    {
+      "menuItemId": "MENU_009"
+    },
+    {
+      "menuItemId": "MENU_143"
+    },
+    {
+      "menuItemId": "MENU_133"
+    },
+    {
+      "menuItemId": "MENU_107"
+    },
+    {
+      "menuItemId": "MENU_120"
+    },
+    {
+      "menuItemId": "MENU_134"
+    },
+    {
+      "menuItemId": "MENU_132"
+    },
+    {
+      "menuItemId": "MENU_112"
+    },
+    {
+      "menuItemId": "MENU_147"
+    },
+    {
+      "menuItemId": "MENU_110"
+    },
+    {
+      "menuItemId": "MENU_010"
+    },
+    {
+      "menuItemId": "MENU_102"
+    }
+  ],
+  "messages": [],
+  "stdout": "menuItemId\nMENU_108\nMENU_111\nMENU_117\nMENU_130\nMENU_008\nMENU_119\nMENU_006\nMENU_121\nMENU_007\nMENU_109\nMENU_128\nMENU_126\nMENU_116\nMENU_135\nMENU_101\nMENU_148\nMENU_123\nMENU_138\nMENU_127\nMENU_136\nMENU_002\nMENU_105\nMENU_131\nMENU_100\nMENU_125\nMENU_104\nMENU_106\nMENU_149\nMENU_140\nMENU_001\nMENU_122\nMENU_004\nMENU_005\nMENU_137\nMENU_142\nMENU_003\nMENU_146\nMENU_118\nMENU_139\nMENU_144\nMENU_141\nMENU_124\nMENU_129\nMENU_115\nMENU_114\nMENU_145\nMENU_113\nMENU_103\nMENU_009\nMENU_143\nMENU_133\nMENU_107\nMENU_120\nMENU_134\nMENU_132\nMENU_112\nMENU_147\nMENU_110\nMENU_010\nMENU_102\n",
+  "stderr": "",
+  "execution_time_ms": 1563
+}

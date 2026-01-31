@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM recipes; DELETE FROM menuItems; DELETE FROM ingredients; DELETE FROM sales;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute DELETE FROM recipes; DELETE FROM menuItems; DELETE FROM ingredients; DELETE FROM sales;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 2202
+}

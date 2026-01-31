@@ -1,0 +1,28 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_b88poXb5RJ3R7HPWuRcyYW": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_b88poXb5RJ3R7HPWuRcyYW": "ingredients"
+    },
+    {
+      "Tables_in_b88poXb5RJ3R7HPWuRcyYW": "menuItems"
+    },
+    {
+      "Tables_in_b88poXb5RJ3R7HPWuRcyYW": "recipes"
+    },
+    {
+      "Tables_in_b88poXb5RJ3R7HPWuRcyYW": "sales"
+    },
+    {
+      "Tables_in_b88poXb5RJ3R7HPWuRcyYW": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_b88poXb5RJ3R7HPWuRcyYW\n__drizzle_migrations\ningredients\nmenuItems\nrecipes\nsales\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 1506
+}

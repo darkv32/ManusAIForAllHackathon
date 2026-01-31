@@ -1,0 +1,50 @@
+{
+  "query": "SELECT r.recipeId, r.menuItemId, r.ingredientId, r.quantity, i.name as ingredient_name, i.costPerUnit FROM recipes r LEFT JOIN ingredients i ON r.ingredientId = i.ingredientId WHERE r.menuItemId = 'MENU_101' OR r.menuItemId LIKE '%Hojicha%' LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT r.recipeId, r.menuItemId, r.ingredientId, r.quantity, i.name as ingredient_name, i.costPerUnit FROM recipes r LEFT JOIN ingredients i ON r.ingredientId = i.ingredientId WHERE r.menuItemId = 'MENU_101' OR r.menuItemId LIKE '%Hojicha%' LIMIT 30;",
+  "rows": [
+    {
+      "recipeId": "REC_7",
+      "menuItemId": "MENU_101",
+      "ingredientId": "ING_033",
+      "quantity": "1.0000",
+      "ingredient_name": "Bio-Cup (Hot 12oz)",
+      "costPerUnit": "0.150000"
+    },
+    {
+      "recipeId": "REC_8",
+      "menuItemId": "MENU_101",
+      "ingredientId": "ING_038",
+      "quantity": "1.0000",
+      "ingredient_name": "Bio-Lid (Hot)",
+      "costPerUnit": "0.050000"
+    },
+    {
+      "recipeId": "REC_9",
+      "menuItemId": "MENU_101",
+      "ingredientId": "ING_043",
+      "quantity": "1.0000",
+      "ingredient_name": "Cup Sleeve (Kraft)",
+      "costPerUnit": "0.030000"
+    },
+    {
+      "recipeId": "REC_5",
+      "menuItemId": "MENU_101",
+      "ingredientId": "ING_004",
+      "quantity": "4.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000"
+    },
+    {
+      "recipeId": "REC_6",
+      "menuItemId": "MENU_101",
+      "ingredientId": "ING_009",
+      "quantity": "250.0000",
+      "ingredient_name": "Whole Milk",
+      "costPerUnit": "0.001500"
+    }
+  ],
+  "messages": [],
+  "stdout": "recipeId\tmenuItemId\tingredientId\tquantity\tingredient_name\tcostPerUnit\nREC_7\tMENU_101\tING_033\t1.0000\tBio-Cup (Hot 12oz)\t0.150000\nREC_8\tMENU_101\tING_038\t1.0000\tBio-Lid (Hot)\t0.050000\nREC_9\tMENU_101\tING_043\t1.0000\tCup Sleeve (Kraft)\t0.030000\nREC_5\tMENU_101\tING_004\t4.0000\tCulinary Grade A (Lattes)\t0.250000\nREC_6\tMENU_101\tING_009\t250.0000\tWhole Milk\t0.001500\n",
+  "stderr": "",
+  "execution_time_ms": 1533
+}

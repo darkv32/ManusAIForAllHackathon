@@ -1,0 +1,64 @@
+{
+  "query": "SELECT DISTINCT itemId FROM menuItems;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT DISTINCT itemId FROM menuItems;",
+  "rows": [
+    {
+      "itemId": "MENU_001"
+    },
+    {
+      "itemId": "MENU_002"
+    },
+    {
+      "itemId": "MENU_003"
+    },
+    {
+      "itemId": "MENU_004"
+    },
+    {
+      "itemId": "MENU_005"
+    },
+    {
+      "itemId": "MENU_006"
+    },
+    {
+      "itemId": "MENU_007"
+    },
+    {
+      "itemId": "MENU_008"
+    },
+    {
+      "itemId": "MENU_009"
+    },
+    {
+      "itemId": "MENU_010"
+    },
+    {
+      "itemId": "MENU_100"
+    },
+    {
+      "itemId": "MENU_101"
+    },
+    {
+      "itemId": "MENU_102"
+    },
+    {
+      "itemId": "MENU_103"
+    },
+    {
+      "itemId": "MENU_104"
+    },
+    {
+      "itemId": "MENU_105"
+    },
+    {
+      "itemId": "MENU_106"
+    },
+    {
+      "itemId": "MENU_107"
+    }
+  ],
+  "messages": [],
+  "stdout": "itemId\nMENU_001\nMENU_002\nMENU_003\nMENU_004\nMENU_005\nMENU_006\nMENU_007\nMENU_008\nMENU_009\nMENU_010\nMENU_100\nMENU_101\nMENU_102\nMENU_103\nMENU_104\nMENU_105\nMENU_106\nMENU_107\n",
+  "stderr": "",
+  "execution_time_ms": 1489
+}

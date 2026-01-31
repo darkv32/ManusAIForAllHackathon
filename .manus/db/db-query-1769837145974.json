@@ -1,0 +1,170 @@
+{
+  "query": "SELECT r.recipeId, r.menuItemId, r.ingredientId, r.quantity, i.name as ingredient_name, i.costPerUnit FROM recipes r LEFT JOIN ingredients i ON r.ingredientId = i.ingredientId LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT r.recipeId, r.menuItemId, r.ingredientId, r.quantity, i.name as ingredient_name, i.costPerUnit FROM recipes r LEFT JOIN ingredients i ON r.ingredientId = i.ingredientId LIMIT 20;",
+  "rows": [
+    {
+      "recipeId": "REC_020",
+      "menuItemId": "MENU_009",
+      "ingredientId": "ING_001",
+      "quantity": "5.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000"
+    },
+    {
+      "recipeId": "REC_010",
+      "menuItemId": "MENU_005",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000"
+    },
+    {
+      "recipeId": "REC_007",
+      "menuItemId": "MENU_004",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000"
+    },
+    {
+      "recipeId": "REC_005",
+      "menuItemId": "MENU_003",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000"
+    },
+    {
+      "recipeId": "REC_003",
+      "menuItemId": "MENU_002",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000"
+    },
+    {
+      "recipeId": "REC_001",
+      "menuItemId": "MENU_001",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000"
+    },
+    {
+      "recipeId": "REC_017",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Take' (Samidori)",
+      "costPerUnit": "0.650000"
+    },
+    {
+      "recipeId": "REC_015",
+      "menuItemId": "MENU_007",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Take' (Samidori)",
+      "costPerUnit": "0.650000"
+    },
+    {
+      "recipeId": "REC_013",
+      "menuItemId": "MENU_006",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Take' (Samidori)",
+      "costPerUnit": "0.650000"
+    },
+    {
+      "recipeId": "REC_018",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000"
+    },
+    {
+      "recipeId": "REC_014",
+      "menuItemId": "MENU_006",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000"
+    },
+    {
+      "recipeId": "REC_008",
+      "menuItemId": "MENU_004",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000"
+    },
+    {
+      "recipeId": "REC_002",
+      "menuItemId": "MENU_001",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000"
+    },
+    {
+      "recipeId": "REC_016",
+      "menuItemId": "MENU_007",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000"
+    },
+    {
+      "recipeId": "REC_011",
+      "menuItemId": "MENU_005",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000"
+    },
+    {
+      "recipeId": "REC_004",
+      "menuItemId": "MENU_002",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000"
+    },
+    {
+      "recipeId": "REC_006",
+      "menuItemId": "MENU_003",
+      "ingredientId": "ING_005",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade B (Baking)",
+      "costPerUnit": "0.150000"
+    },
+    {
+      "recipeId": "REC_019",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_010",
+      "quantity": "5.0000",
+      "ingredient_name": "Skim Milk",
+      "costPerUnit": "0.001500"
+    },
+    {
+      "recipeId": "REC_012",
+      "menuItemId": "MENU_005",
+      "ingredientId": "ING_010",
+      "quantity": "5.0000",
+      "ingredient_name": "Skim Milk",
+      "costPerUnit": "0.001500"
+    },
+    {
+      "recipeId": "REC_009",
+      "menuItemId": "MENU_004",
+      "ingredientId": "ING_010",
+      "quantity": "5.0000",
+      "ingredient_name": "Skim Milk",
+      "costPerUnit": "0.001500"
+    }
+  ],
+  "messages": [],
+  "stdout": "recipeId\tmenuItemId\tingredientId\tquantity\tingredient_name\tcostPerUnit\nREC_020\tMENU_009\tING_001\t5.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\nREC_010\tMENU_005\tING_001\t3.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\nREC_007\tMENU_004\tING_001\t3.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\nREC_005\tMENU_003\tING_001\t3.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\nREC_003\tMENU_002\tING_001\t3.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\nREC_001\tMENU_001\tING_001\t3.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\nREC_017\tMENU_008\tING_002\t4.0000\tCeremonial Grade 'Take' (Samidori)\t0.650000\nREC_015\tMENU_007\tING_002\t4.0000\tCeremonial Grade 'Take' (Samidori)\t0.650000\nREC_013\tMENU_006\tING_002\t4.0000\tCeremonial Grade 'Take' (Samidori)\t0.650000\nREC_018\tMENU_008\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\nREC_014\tMENU_006\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\nREC_008\tMENU_004\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\nREC_002\tMENU_001\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\nREC_016\tMENU_007\tING_004\t200.0000\tCulinary Grade A (Lattes)\t0.250000\nREC_011\tMENU_005\tING_004\t200.0000\tCulinary Grade A (Lattes)\t0.250000\nREC_004\tMENU_002\tING_004\t200.0000\tCulinary Grade A (Lattes)\t0.250000\nREC_006\tMENU_003\tING_005\t200.0000\tCulinary Grade B (Baking)\t0.150000\nREC_019\tMENU_008\tING_010\t5.0000\tSkim Milk\t0.001500\nREC_012\tMENU_005\tING_010\t5.0000\tSkim Milk\t0.001500\nREC_009\tMENU_004\tING_010\t5.0000\tSkim Milk\t0.001500\n",
+  "stderr": "",
+  "execution_time_ms": 1542
+}

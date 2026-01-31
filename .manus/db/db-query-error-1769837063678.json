@@ -1,0 +1,8 @@
+{
+  "query": "SELECT r.*, i.name as ingredient_name, i.cost_per_unit, m.name as menu_name FROM recipes r LEFT JOIN ingredients i ON r.ingredient_id = i.ingredient_id LEFT JOIN menu_items m ON r.menu_item_id = m.menu_item_id LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT r.*, i.name as ingredient_name, i.cost_per_unit, m.name as menu_name FROM recipes r LEFT JOIN ingredients i ON r.ingredient_id = i.ingredient_id LEFT JOIN menu_items m ON r.menu_item_id = m.menu_item_id LIMIT 20;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'b88poxb5rj3r7hpwurcyyw.menu_items' doesn't exist"
+  ]
+}

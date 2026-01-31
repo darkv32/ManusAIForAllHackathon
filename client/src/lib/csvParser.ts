@@ -43,7 +43,9 @@ export function parseCSV<T>(csvText: string): T[] {
         const value = values[index];
         // Try to parse as number
         const numValue = parseFloat(value);
-        row[header.trim()] = !isNaN(numValue) && header !== 'transaction_id' && header !== 'item_id' && header !== 'ingredient_id' 
+        // Preserve timestamp, transaction_id, item_id, ingredient_id, menu_item_id as strings
+        const keepAsString = ['transaction_id', 'item_id', 'ingredient_id', 'menu_item_id', 'timestamp'].includes(header.trim());
+        row[header.trim()] = !isNaN(numValue) && !keepAsString
           ? numValue 
           : value.trim();
       });
@@ -112,13 +114,31 @@ export async function parseIngredientsCSV(file: File): Promise<IngredientRecord[
 
 /**
  * Group sales data by day for revenue chart
+ * Handles timestamps in format: YYYY-MM-DD HH:MM:SS
  */
 export function groupSalesByDay(sales: SalesRecord[]): { date: string; revenue: number }[] {
   const grouped: Record<string, number> = {};
   
   sales.forEach((sale) => {
-    const date = new Date(sale.timestamp).toISOString().split('T')[0];
-    grouped[date] = (grouped[date] || 0) + sale.total_sales;
+    // Handle timestamp format: "2024-02-01 08:06:06"
+    let dateStr: string;
+    if (typeof sale.timestamp === 'string') {
+      // Extract just the date part (YYYY-MM-DD) from the timestamp
+      const datePart = sale.timestamp.split(' ')[0];
+      if (datePart && /^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        dateStr = datePart;
+      } else {
+        // Fallback: try to parse as Date
+        const parsed = new Date(sale.timestamp);
+        dateStr = !isNaN(parsed.getTime()) ? parsed.toISOString().split('T')[0] : 'Invalid';
+      }
+    } else {
+      dateStr = 'Invalid';
+    }
+    
+    if (dateStr !== 'Invalid') {
+      grouped[dateStr] = (grouped[dateStr] || 0) + sale.total_sales;
+    }
   });
   
   return Object.entries(grouped)

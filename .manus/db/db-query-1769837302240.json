@@ -1,0 +1,190 @@
+{
+  "query": "SELECT r.recipeId, r.menuItemId, r.ingredientId, r.quantity, i.name as ingredient_name, i.costPerUnit, (r.quantity * i.costPerUnit) as total_cost FROM recipes r LEFT JOIN ingredients i ON r.ingredientId = i.ingredientId ORDER BY (r.quantity * i.costPerUnit) DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT r.recipeId, r.menuItemId, r.ingredientId, r.quantity, i.name as ingredient_name, i.costPerUnit, (r.quantity * i.costPerUnit) as total_cost FROM recipes r LEFT JOIN ingredients i ON r.ingredientId = i.ingredientId ORDER BY (r.quantity * i.costPerUnit) DESC LIMIT 20;",
+  "rows": [
+    {
+      "recipeId": "REC_018",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000",
+      "total_cost": "100.0000000000"
+    },
+    {
+      "recipeId": "REC_014",
+      "menuItemId": "MENU_006",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000",
+      "total_cost": "100.0000000000"
+    },
+    {
+      "recipeId": "REC_008",
+      "menuItemId": "MENU_004",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000",
+      "total_cost": "100.0000000000"
+    },
+    {
+      "recipeId": "REC_002",
+      "menuItemId": "MENU_001",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000",
+      "ingredient_name": "Ceremonial Grade 'Ume' (Yabukita)",
+      "costPerUnit": "0.500000",
+      "total_cost": "100.0000000000"
+    },
+    {
+      "recipeId": "REC_021",
+      "menuItemId": "MENU_009",
+      "ingredientId": "ING_004",
+      "quantity": "250.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000",
+      "total_cost": "62.5000000000"
+    },
+    {
+      "recipeId": "REC_004",
+      "menuItemId": "MENU_002",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000",
+      "total_cost": "50.0000000000"
+    },
+    {
+      "recipeId": "REC_024",
+      "menuItemId": "MENU_010",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000",
+      "total_cost": "50.0000000000"
+    },
+    {
+      "recipeId": "REC_011",
+      "menuItemId": "MENU_005",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000",
+      "total_cost": "50.0000000000"
+    },
+    {
+      "recipeId": "REC_016",
+      "menuItemId": "MENU_007",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade A (Lattes)",
+      "costPerUnit": "0.250000",
+      "total_cost": "50.0000000000"
+    },
+    {
+      "recipeId": "REC_025",
+      "menuItemId": "MENU_010",
+      "ingredientId": "ING_008",
+      "quantity": "30.0000",
+      "ingredient_name": "Gyokuro (Premium Shade)",
+      "costPerUnit": "1.200000",
+      "total_cost": "36.0000000000"
+    },
+    {
+      "recipeId": "REC_006",
+      "menuItemId": "MENU_003",
+      "ingredientId": "ING_005",
+      "quantity": "200.0000",
+      "ingredient_name": "Culinary Grade B (Baking)",
+      "costPerUnit": "0.150000",
+      "total_cost": "30.0000000000"
+    },
+    {
+      "recipeId": "REC_022",
+      "menuItemId": "MENU_009",
+      "ingredientId": "ING_007",
+      "quantity": "20.0000",
+      "ingredient_name": "Genmaicha (Brown Rice Tea)",
+      "costPerUnit": "0.350000",
+      "total_cost": "7.0000000000"
+    },
+    {
+      "recipeId": "REC_243",
+      "menuItemId": "MENU_149",
+      "ingredientId": "ING_001",
+      "quantity": "8.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000",
+      "total_cost": "6.4000000000"
+    },
+    {
+      "recipeId": "REC_020",
+      "menuItemId": "MENU_009",
+      "ingredientId": "ING_001",
+      "quantity": "5.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000",
+      "total_cost": "4.0000000000"
+    },
+    {
+      "recipeId": "REC_24",
+      "menuItemId": "MENU_105",
+      "ingredientId": "ING_001",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000",
+      "total_cost": "3.2000000000"
+    },
+    {
+      "recipeId": "REC_32",
+      "menuItemId": "MENU_107",
+      "ingredientId": "ING_001",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000",
+      "total_cost": "3.2000000000"
+    },
+    {
+      "recipeId": "REC_241",
+      "menuItemId": "MENU_148",
+      "ingredientId": "ING_001",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Matsu' (Okumidori)",
+      "costPerUnit": "0.800000",
+      "total_cost": "3.2000000000"
+    },
+    {
+      "recipeId": "REC_017",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Take' (Samidori)",
+      "costPerUnit": "0.650000",
+      "total_cost": "2.6000000000"
+    },
+    {
+      "recipeId": "REC_015",
+      "menuItemId": "MENU_007",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Take' (Samidori)",
+      "costPerUnit": "0.650000",
+      "total_cost": "2.6000000000"
+    },
+    {
+      "recipeId": "REC_013",
+      "menuItemId": "MENU_006",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000",
+      "ingredient_name": "Ceremonial Grade 'Take' (Samidori)",
+      "costPerUnit": "0.650000",
+      "total_cost": "2.6000000000"
+    }
+  ],
+  "messages": [],
+  "stdout": "recipeId\tmenuItemId\tingredientId\tquantity\tingredient_name\tcostPerUnit\ttotal_cost\nREC_018\tMENU_008\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\t100.0000000000\nREC_014\tMENU_006\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\t100.0000000000\nREC_008\tMENU_004\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\t100.0000000000\nREC_002\tMENU_001\tING_003\t200.0000\tCeremonial Grade 'Ume' (Yabukita)\t0.500000\t100.0000000000\nREC_021\tMENU_009\tING_004\t250.0000\tCulinary Grade A (Lattes)\t0.250000\t62.5000000000\nREC_004\tMENU_002\tING_004\t200.0000\tCulinary Grade A (Lattes)\t0.250000\t50.0000000000\nREC_024\tMENU_010\tING_004\t200.0000\tCulinary Grade A (Lattes)\t0.250000\t50.0000000000\nREC_011\tMENU_005\tING_004\t200.0000\tCulinary Grade A (Lattes)\t0.250000\t50.0000000000\nREC_016\tMENU_007\tING_004\t200.0000\tCulinary Grade A (Lattes)\t0.250000\t50.0000000000\nREC_025\tMENU_010\tING_008\t30.0000\tGyokuro (Premium Shade)\t1.200000\t36.0000000000\nREC_006\tMENU_003\tING_005\t200.0000\tCulinary Grade B (Baking)\t0.150000\t30.0000000000\nREC_022\tMENU_009\tING_007\t20.0000\tGenmaicha (Brown Rice Tea)\t0.350000\t7.0000000000\nREC_243\tMENU_149\tING_001\t8.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\t6.4000000000\nREC_020\tMENU_009\tING_001\t5.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\t4.0000000000\nREC_24\tMENU_105\tING_001\t4.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\t3.2000000000\nREC_32\tMENU_107\tING_001\t4.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\t3.2000000000\nREC_241\tMENU_148\tING_001\t4.0000\tCeremonial Grade 'Matsu' (Okumidori)\t0.800000\t3.2000000000\nREC_017\tMENU_008\tING_002\t4.0000\tCeremonial Grade 'Take' (Samidori)\t0.650000\t2.6000000000\nREC_015\tMENU_007\tING_002\t4.0000\tCeremonial Grade 'Take' (Samidori)\t0.650000\t2.6000000000\nREC_013\tMENU_006\tING_002\t4.0000\tCeremonial Grade 'Take' (Samidori)\t0.650000\t2.6000000000\n",
+  "stderr": "",
+  "execution_time_ms": 1540
+}

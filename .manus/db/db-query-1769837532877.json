@@ -1,0 +1,190 @@
+{
+  "query": "SELECT recipeId, menuItemId, ingredientId, quantity FROM recipes LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT recipeId, menuItemId, ingredientId, quantity FROM recipes LIMIT 30;",
+  "rows": [
+    {
+      "recipeId": "REC_001",
+      "menuItemId": "MENU_001",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000"
+    },
+    {
+      "recipeId": "REC_002",
+      "menuItemId": "MENU_001",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_003",
+      "menuItemId": "MENU_002",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000"
+    },
+    {
+      "recipeId": "REC_004",
+      "menuItemId": "MENU_002",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_005",
+      "menuItemId": "MENU_003",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000"
+    },
+    {
+      "recipeId": "REC_006",
+      "menuItemId": "MENU_003",
+      "ingredientId": "ING_005",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_007",
+      "menuItemId": "MENU_004",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000"
+    },
+    {
+      "recipeId": "REC_008",
+      "menuItemId": "MENU_004",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_009",
+      "menuItemId": "MENU_004",
+      "ingredientId": "ING_010",
+      "quantity": "5.0000"
+    },
+    {
+      "recipeId": "REC_010",
+      "menuItemId": "MENU_005",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000"
+    },
+    {
+      "recipeId": "REC_011",
+      "menuItemId": "MENU_005",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_012",
+      "menuItemId": "MENU_005",
+      "ingredientId": "ING_010",
+      "quantity": "5.0000"
+    },
+    {
+      "recipeId": "REC_013",
+      "menuItemId": "MENU_006",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000"
+    },
+    {
+      "recipeId": "REC_014",
+      "menuItemId": "MENU_006",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_015",
+      "menuItemId": "MENU_007",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000"
+    },
+    {
+      "recipeId": "REC_016",
+      "menuItemId": "MENU_007",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_017",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_002",
+      "quantity": "4.0000"
+    },
+    {
+      "recipeId": "REC_018",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_003",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_019",
+      "menuItemId": "MENU_008",
+      "ingredientId": "ING_010",
+      "quantity": "5.0000"
+    },
+    {
+      "recipeId": "REC_020",
+      "menuItemId": "MENU_009",
+      "ingredientId": "ING_001",
+      "quantity": "5.0000"
+    },
+    {
+      "recipeId": "REC_021",
+      "menuItemId": "MENU_009",
+      "ingredientId": "ING_004",
+      "quantity": "250.0000"
+    },
+    {
+      "recipeId": "REC_022",
+      "menuItemId": "MENU_009",
+      "ingredientId": "ING_007",
+      "quantity": "20.0000"
+    },
+    {
+      "recipeId": "REC_023",
+      "menuItemId": "MENU_010",
+      "ingredientId": "ING_001",
+      "quantity": "3.0000"
+    },
+    {
+      "recipeId": "REC_024",
+      "menuItemId": "MENU_010",
+      "ingredientId": "ING_004",
+      "quantity": "200.0000"
+    },
+    {
+      "recipeId": "REC_025",
+      "menuItemId": "MENU_010",
+      "ingredientId": "ING_008",
+      "quantity": "30.0000"
+    },
+    {
+      "recipeId": "REC_1",
+      "menuItemId": "MENU_100",
+      "ingredientId": "ING_004",
+      "quantity": "4.0000"
+    },
+    {
+      "recipeId": "REC_2",
+      "menuItemId": "MENU_100",
+      "ingredientId": "ING_036",
+      "quantity": "1.0000"
+    },
+    {
+      "recipeId": "REC_3",
+      "menuItemId": "MENU_100",
+      "ingredientId": "ING_039",
+      "quantity": "1.0000"
+    },
+    {
+      "recipeId": "REC_4",
+      "menuItemId": "MENU_100",
+      "ingredientId": "ING_041",
+      "quantity": "1.0000"
+    },
+    {
+      "recipeId": "REC_5",
+      "menuItemId": "MENU_101",
+      "ingredientId": "ING_004",
+      "quantity": "4.0000"
+    }
+  ],
+  "messages": [],
+  "stdout": "recipeId\tmenuItemId\tingredientId\tquantity\nREC_001\tMENU_001\tING_001\t3.0000\nREC_002\tMENU_001\tING_003\t200.0000\nREC_003\tMENU_002\tING_001\t3.0000\nREC_004\tMENU_002\tING_004\t200.0000\nREC_005\tMENU_003\tING_001\t3.0000\nREC_006\tMENU_003\tING_005\t200.0000\nREC_007\tMENU_004\tING_001\t3.0000\nREC_008\tMENU_004\tING_003\t200.0000\nREC_009\tMENU_004\tING_010\t5.0000\nREC_010\tMENU_005\tING_001\t3.0000\nREC_011\tMENU_005\tING_004\t200.0000\nREC_012\tMENU_005\tING_010\t5.0000\nREC_013\tMENU_006\tING_002\t4.0000\nREC_014\tMENU_006\tING_003\t200.0000\nREC_015\tMENU_007\tING_002\t4.0000\nREC_016\tMENU_007\tING_004\t200.0000\nREC_017\tMENU_008\tING_002\t4.0000\nREC_018\tMENU_008\tING_003\t200.0000\nREC_019\tMENU_008\tING_010\t5.0000\nREC_020\tMENU_009\tING_001\t5.0000\nREC_021\tMENU_009\tING_004\t250.0000\nREC_022\tMENU_009\tING_007\t20.0000\nREC_023\tMENU_010\tING_001\t3.0000\nREC_024\tMENU_010\tING_004\t200.0000\nREC_025\tMENU_010\tING_008\t30.0000\nREC_1\tMENU_100\tING_004\t4.0000\nREC_2\tMENU_100\tING_036\t1.0000\nREC_3\tMENU_100\tING_039\t1.0000\nREC_4\tMENU_100\tING_041\t1.0000\nREC_5\tMENU_101\tING_004\t4.0000\n",
+  "stderr": "",
+  "execution_time_ms": 1495
+}

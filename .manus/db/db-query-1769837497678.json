@@ -1,0 +1,118 @@
+{
+  "query": "SELECT itemId, itemName, category, salesPrice FROM menuItems LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user cZxp9onhTXAgp9c.root --database b88poXb5RJ3R7HPWuRcyYW --execute SELECT itemId, itemName, category, salesPrice FROM menuItems LIMIT 30;",
+  "rows": [
+    {
+      "itemId": "MENU_001",
+      "itemName": "Matcha Latte (Hot Regular) - Whole Milk",
+      "category": "Matcha",
+      "salesPrice": "6.50"
+    },
+    {
+      "itemId": "MENU_002",
+      "itemName": "Matcha Latte (Hot Regular) - Oat Milk",
+      "category": "Matcha",
+      "salesPrice": "7.50"
+    },
+    {
+      "itemId": "MENU_003",
+      "itemName": "Matcha Latte (Hot Regular) - Almond Milk",
+      "category": "Matcha",
+      "salesPrice": "7.30"
+    },
+    {
+      "itemId": "MENU_004",
+      "itemName": "Matcha Latte (Iced Regular) - Whole Milk",
+      "category": "Matcha",
+      "salesPrice": "7.00"
+    },
+    {
+      "itemId": "MENU_005",
+      "itemName": "Matcha Latte (Iced Regular) - Oat Milk",
+      "category": "Matcha",
+      "salesPrice": "8.00"
+    },
+    {
+      "itemId": "MENU_006",
+      "itemName": "Hojicha Latte (Hot Regular) - Whole Milk",
+      "category": "Hojicha",
+      "salesPrice": "6.00"
+    },
+    {
+      "itemId": "MENU_007",
+      "itemName": "Hojicha Latte (Hot Regular) - Oat Milk",
+      "category": "Hojicha",
+      "salesPrice": "7.00"
+    },
+    {
+      "itemId": "MENU_008",
+      "itemName": "Hojicha Latte (Iced Regular) - Whole Milk",
+      "category": "Hojicha",
+      "salesPrice": "6.50"
+    },
+    {
+      "itemId": "MENU_009",
+      "itemName": "Signature Matcha (Premium) - Oat Milk",
+      "category": "Matcha",
+      "salesPrice": "9.50"
+    },
+    {
+      "itemId": "MENU_010",
+      "itemName": "Brown Sugar Matcha - Oat Milk",
+      "category": "Matcha",
+      "salesPrice": "8.50"
+    },
+    {
+      "itemId": "MENU_100",
+      "itemName": "Iced Matcha",
+      "category": "Regular",
+      "salesPrice": "6.50"
+    },
+    {
+      "itemId": "MENU_101",
+      "itemName": "Signature Matcha Latte",
+      "category": "Signature",
+      "salesPrice": "8.50"
+    },
+    {
+      "itemId": "MENU_102",
+      "itemName": "Oat Matcha Latte",
+      "category": "Regular",
+      "salesPrice": "9.00"
+    },
+    {
+      "itemId": "MENU_103",
+      "itemName": "Houjicha Latte",
+      "category": "Regular",
+      "salesPrice": "7.00"
+    },
+    {
+      "itemId": "MENU_104",
+      "itemName": "Honey Foam Matcha",
+      "category": "Signature",
+      "salesPrice": "10.00"
+    },
+    {
+      "itemId": "MENU_105",
+      "itemName": "Premium Ceremonial Bowl",
+      "category": "Premium",
+      "salesPrice": "12.00"
+    },
+    {
+      "itemId": "MENU_106",
+      "itemName": "Strawberry Matcha",
+      "category": "Seasonal",
+      "salesPrice": "9.50"
+    },
+    {
+      "itemId": "MENU_107",
+      "itemName": "Matcha Affogato",
+      "category": "Premium",
+      "salesPrice": "11.50"
+    }
+  ],
+  "messages": [],
+  "stdout": "itemId\titemName\tcategory\tsalesPrice\nMENU_001\tMatcha Latte (Hot Regular) - Whole Milk\tMatcha\t6.50\nMENU_002\tMatcha Latte (Hot Regular) - Oat Milk\tMatcha\t7.50\nMENU_003\tMatcha Latte (Hot Regular) - Almond Milk\tMatcha\t7.30\nMENU_004\tMatcha Latte (Iced Regular) - Whole Milk\tMatcha\t7.00\nMENU_005\tMatcha Latte (Iced Regular) - Oat Milk\tMatcha\t8.00\nMENU_006\tHojicha Latte (Hot Regular) - Whole Milk\tHojicha\t6.00\nMENU_007\tHojicha Latte (Hot Regular) - Oat Milk\tHojicha\t7.00\nMENU_008\tHojicha Latte (Iced Regular) - Whole Milk\tHojicha\t6.50\nMENU_009\tSignature Matcha (Premium) - Oat Milk\tMatcha\t9.50\nMENU_010\tBrown Sugar Matcha - Oat Milk\tMatcha\t8.50\nMENU_100\tIced Matcha\tRegular\t6.50\nMENU_101\tSignature Matcha Latte\tSignature\t8.50\nMENU_102\tOat Matcha Latte\tRegular\t9.00\nMENU_103\tHoujicha Latte\tRegular\t7.00\nMENU_104\tHoney Foam Matcha\tSignature\t10.00\nMENU_105\tPremium Ceremonial Bowl\tPremium\t12.00\nMENU_106\tStrawberry Matcha\tSeasonal\t9.50\nMENU_107\tMatcha Affogato\tPremium\t11.50\n",
+  "stderr": "",
+  "execution_time_ms": 1560
+}
