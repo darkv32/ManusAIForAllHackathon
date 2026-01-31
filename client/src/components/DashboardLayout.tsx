@@ -18,6 +18,7 @@ import {
   Home,
   Lightbulb,
   LogOut,
+  Megaphone,
   Menu,
   Package,
   Settings,
@@ -77,7 +78,6 @@ const navGroups: NavGroup[] = [
     label: 'Sales & Finance',
     items: [
       { title: 'Sales', href: '/sales', icon: <DollarSign className="h-[18px] w-[18px]" /> },
-      { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-[18px] w-[18px]" /> },
       { title: 'Menu & Costs', href: '/menu', icon: <BarChart3 className="h-[18px] w-[18px]" /> },
     ]
   },
@@ -85,6 +85,8 @@ const navGroups: NavGroup[] = [
     label: 'Strategy & Insights',
     items: [
       { title: 'Strategy', href: '/strategy', icon: <Lightbulb className="h-[18px] w-[18px]" />, badge: '4' },
+      { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-[18px] w-[18px]" /> },
+      { title: 'Promotions', href: '/promotions', icon: <Megaphone className="h-[18px] w-[18px]" /> },
     ]
   },
 ];

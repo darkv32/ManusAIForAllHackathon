@@ -554,6 +554,144 @@ Please provide your strategic recommendations with detailed recipes for new drin
         }
       }),
   }),
+
+  // ============ PROMOTIONS ============
+  promotions: router({
+    list: publicProcedure.query(async () => {
+      return await db.getAllPromotions();
+    }),
+    
+    active: publicProcedure.query(async () => {
+      return await db.getActivePromotions();
+    }),
+    
+    planned: publicProcedure.query(async () => {
+      return await db.getPlannedPromotions();
+    }),
+    
+    completed: publicProcedure.query(async () => {
+      return await db.getCompletedPromotions();
+    }),
+    
+    suggested: publicProcedure.query(async () => {
+      return await db.generateSuggestedPromotions();
+    }),
+    
+    get: publicProcedure
+      .input(z.object({ promotionId: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getPromotionById(input.promotionId);
+      }),
+    
+    create: publicProcedure
+      .input(z.object({
+        promotionId: z.string(),
+        name: z.string(),
+        description: z.string().optional(),
+        promotionType: z.enum(['featured', 'limited_time', 'bundle', 'discount', 'seasonal']),
+        affectedMenuItems: z.string(),
+        startDate: z.string(),
+        endDate: z.string(),
+        status: z.enum(['planned', 'running', 'completed', 'cancelled']).optional(),
+        expectedSalesVolume: z.number().optional(),
+        expectedInventoryDepletion: z.string().optional(),
+        expectedProfitContribution: z.string().optional(),
+        rationale: z.string().optional(),
+        dataInputs: z.string().optional(),
+        assumptions: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.createPromotion({
+          ...input,
+          startDate: new Date(input.startDate),
+          endDate: new Date(input.endDate),
+        });
+        return { success: true };
+      }),
+    
+    update: publicProcedure
+      .input(z.object({
+        promotionId: z.string(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        promotionType: z.enum(['featured', 'limited_time', 'bundle', 'discount', 'seasonal']).optional(),
+        affectedMenuItems: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        status: z.enum(['planned', 'running', 'completed', 'cancelled']).optional(),
+        expectedSalesVolume: z.number().optional(),
+        expectedInventoryDepletion: z.string().optional(),
+        expectedProfitContribution: z.string().optional(),
+        actualSalesVolume: z.number().optional(),
+        actualInventoryDepletion: z.string().optional(),
+        actualProfitContribution: z.string().optional(),
+        rationale: z.string().optional(),
+        dataInputs: z.string().optional(),
+        assumptions: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { promotionId, startDate, endDate, ...data } = input;
+        const updateData: Record<string, unknown> = { ...data };
+        if (startDate) updateData.startDate = new Date(startDate);
+        if (endDate) updateData.endDate = new Date(endDate);
+        await db.updatePromotion(promotionId, updateData);
+        return { success: true };
+      }),
+    
+    delete: publicProcedure
+      .input(z.object({ promotionId: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deletePromotion(input.promotionId);
+        return { success: true };
+      }),
+    
+    activate: publicProcedure
+      .input(z.object({ promotionId: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.updatePromotion(input.promotionId, { status: 'running' });
+        return { success: true };
+      }),
+    
+    complete: publicProcedure
+      .input(z.object({
+        promotionId: z.string(),
+        actualSalesVolume: z.number().optional(),
+        actualInventoryDepletion: z.string().optional(),
+        actualProfitContribution: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { promotionId, ...data } = input;
+        await db.updatePromotion(promotionId, { ...data, status: 'completed' });
+        return { success: true };
+      }),
+  }),
+
+  // ============ SETTINGS ============
+  settings: router({
+    getMonthlyProfitGoal: publicProcedure.query(async () => {
+      return await db.getMonthlyProfitGoal();
+    }),
+    
+    setMonthlyProfitGoal: publicProcedure
+      .input(z.object({ goal: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.setMonthlyProfitGoal(input.goal);
+        return { success: true };
+      }),
+    
+    get: publicProcedure
+      .input(z.object({ key: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getSetting(input.key);
+      }),
+    
+    set: publicProcedure
+      .input(z.object({ key: z.string(), value: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.setSetting(input.key, input.value);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,11 +1,13 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
   ingredients, InsertIngredient, Ingredient,
   menuItems, InsertMenuItem, MenuItem,
   recipes, InsertRecipe, Recipe,
-  sales, InsertSale, Sale
+  sales, InsertSale, Sale,
+  promotions, InsertPromotion, Promotion,
+  appSettings, InsertAppSetting, AppSetting
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -801,4 +803,278 @@ export async function getAllIngredientAnalytics(): Promise<IngredientAnalyticsDa
   }
   
   return analytics;
+}
+
+
+// ============ PROMOTIONS ============
+
+export async function getAllPromotions(): Promise<Promotion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(promotions).orderBy(promotions.startDate);
+}
+
+export async function getActivePromotions(): Promise<Promotion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  return await db.select().from(promotions)
+    .where(and(
+      eq(promotions.status, 'running'),
+      lte(promotions.startDate, now),
+      gte(promotions.endDate, now)
+    ))
+    .orderBy(promotions.startDate);
+}
+
+export async function getPlannedPromotions(): Promise<Promotion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(promotions)
+    .where(eq(promotions.status, 'planned'))
+    .orderBy(promotions.startDate);
+}
+
+export async function getCompletedPromotions(): Promise<Promotion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(promotions)
+    .where(eq(promotions.status, 'completed'))
+    .orderBy(promotions.endDate);
+}
+
+export async function getPromotionById(promotionId: string): Promise<Promotion | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(promotions).where(eq(promotions.promotionId, promotionId)).limit(1);
+  return result[0];
+}
+
+export async function createPromotion(data: InsertPromotion): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(promotions).values(data);
+}
+
+export async function updatePromotion(promotionId: string, data: Partial<InsertPromotion>): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(promotions).set(data).where(eq(promotions.promotionId, promotionId));
+}
+
+export async function deletePromotion(promotionId: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(promotions).where(eq(promotions.promotionId, promotionId));
+}
+
+// ============ APP SETTINGS ============
+
+export async function getSetting(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(appSettings).where(eq(appSettings.settingKey, key)).limit(1);
+  return result[0]?.settingValue ?? null;
+}
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(appSettings).values({ settingKey: key, settingValue: value })
+    .onDuplicateKeyUpdate({ set: { settingValue: value } });
+}
+
+export async function getMonthlyProfitGoal(): Promise<number> {
+  const value = await getSetting('monthlyProfitGoal');
+  return value ? parseFloat(value) : 15000;
+}
+
+export async function setMonthlyProfitGoal(goal: number): Promise<void> {
+  await setSetting('monthlyProfitGoal', goal.toString());
+}
+
+// ============ SUGGESTED PROMOTIONS (AI-GENERATED) ============
+
+export interface SuggestedPromotion {
+  id: string;
+  title: string;
+  promotionType: 'featured' | 'limited_time' | 'bundle' | 'discount' | 'seasonal';
+  affectedMenuItems: string[];
+  rationale: string;
+  inventoryImpact: {
+    ingredientsAffected: string[];
+    percentageConsumed: number;
+    wasteReduction: number;
+  };
+  projectedImpact: {
+    salesUplift: number;
+    profitImpact: number;
+    wasteReduction: number;
+  };
+  dataInputs: string[];
+  assumptions: string[];
+  priority: 'high' | 'medium' | 'low';
+}
+
+export async function generateSuggestedPromotions(): Promise<SuggestedPromotion[]> {
+  // Get all necessary data
+  const allIngredients = await getAllIngredients();
+  const allMenuItems = await getAllMenuItems();
+  const allRecipes = await getAllRecipes();
+  const allSales = await getAllSales();
+  
+  const suggestions: SuggestedPromotion[] = [];
+  
+  // 1. Find ingredients with expiry risk (within 7 days)
+  const now = new Date();
+  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const expiringIngredients = allIngredients.filter(i => 
+    i.expiryDate && new Date(i.expiryDate) <= sevenDaysFromNow
+  );
+  
+  // 2. Find ingredients with overstock (high stock relative to usage)
+  const ingredientUsage = new Map<string, number>();
+  const ingredientMap = new Map(allIngredients.map(i => [i.ingredientId, i]));
+  
+  // Calculate usage from sales
+  for (const sale of allSales) {
+    const itemRecipes = allRecipes.filter(r => r.menuItemId === sale.menuItemId);
+    for (const recipe of itemRecipes) {
+      const current = ingredientUsage.get(recipe.ingredientId) || 0;
+      ingredientUsage.set(recipe.ingredientId, current + (parseFloat(String(recipe.quantity)) * sale.quantity));
+    }
+  }
+  
+  // Calculate average daily usage
+  const salesDays = allSales.length > 0 
+    ? Math.max(1, Math.ceil((new Date(allSales[allSales.length - 1].timestamp).getTime() - new Date(allSales[0].timestamp).getTime()) / (24 * 60 * 60 * 1000)))
+    : 30;
+  
+  const overstockedIngredients = allIngredients.filter(i => {
+    const totalUsage = ingredientUsage.get(i.ingredientId) || 0;
+    const dailyUsage = totalUsage / salesDays;
+    const currentStock = parseFloat(String(i.currentStock || 0));
+    const daysOfStock = dailyUsage > 0 ? currentStock / dailyUsage : 999;
+    return daysOfStock > 60; // More than 60 days of stock
+  });
+  
+  // 3. Find drinks with strong sales trends
+  const drinkSales = new Map<string, { total: number; recent: number }>();
+  const halfwayPoint = Math.floor(allSales.length / 2);
+  
+  allSales.forEach((sale, index) => {
+    const current = drinkSales.get(sale.menuItemId) || { total: 0, recent: 0 };
+    current.total += sale.quantity;
+    if (index >= halfwayPoint) {
+      current.recent += sale.quantity;
+    }
+    drinkSales.set(sale.menuItemId, current);
+  });
+  
+  const trendingDrinks = Array.from(drinkSales.entries())
+    .map(([itemId, data]) => ({
+      itemId,
+      total: data.total,
+      recent: data.recent,
+      trend: data.total > 0 ? ((data.recent * 2) - data.total) / data.total : 0
+    }))
+    .filter(d => d.trend > 0.1)
+    .sort((a, b) => b.trend - a.trend);
+  
+  // Generate suggestions based on expiring ingredients
+  for (const ingredient of expiringIngredients.slice(0, 2)) {
+    const affectedRecipes = allRecipes.filter(r => r.ingredientId === ingredient.ingredientId);
+    const affectedItems = affectedRecipes.map(r => r.menuItemId);
+    const affectedMenuItemNames = allMenuItems
+      .filter(m => affectedItems.includes(m.itemId))
+      .map(m => m.itemName);
+    
+    if (affectedMenuItemNames.length > 0) {
+      const daysUntilExpiry = ingredient.expiryDate 
+        ? Math.ceil((new Date(ingredient.expiryDate).getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
+        : 7;
+      
+      suggestions.push({
+        id: `expiry-${ingredient.ingredientId}`,
+        title: `Flash Sale: ${affectedMenuItemNames[0]} Special`,
+        promotionType: 'limited_time',
+        affectedMenuItems: affectedItems,
+        rationale: `${ingredient.name} expires in ${daysUntilExpiry} days. Promoting drinks that use this ingredient will reduce waste and recover ingredient costs.`,
+        inventoryImpact: {
+          ingredientsAffected: [ingredient.ingredientId],
+          percentageConsumed: 80,
+          wasteReduction: parseFloat(String(ingredient.currentStock || 0)) * parseFloat(String(ingredient.costPerUnit)),
+        },
+        projectedImpact: {
+          salesUplift: 25,
+          profitImpact: parseFloat(String(ingredient.currentStock || 0)) * parseFloat(String(ingredient.costPerUnit)) * 0.6,
+          wasteReduction: parseFloat(String(ingredient.currentStock || 0)) * parseFloat(String(ingredient.costPerUnit)) * 0.8,
+        },
+        dataInputs: ['Ingredient expiry dates', 'Current stock levels', 'Recipe mappings'],
+        assumptions: ['20% discount will drive 25% sales increase', 'Promotion runs for 3 days'],
+        priority: 'high',
+      });
+    }
+  }
+  
+  // Generate suggestions based on overstocked ingredients
+  for (const ingredient of overstockedIngredients.slice(0, 2)) {
+    const affectedRecipes = allRecipes.filter(r => r.ingredientId === ingredient.ingredientId);
+    const affectedItems = affectedRecipes.map(r => r.menuItemId);
+    const affectedMenuItemNames = allMenuItems
+      .filter(m => affectedItems.includes(m.itemId))
+      .map(m => m.itemName);
+    
+    if (affectedMenuItemNames.length > 0) {
+      suggestions.push({
+        id: `overstock-${ingredient.ingredientId}`,
+        title: `Featured: ${affectedMenuItemNames[0]}`,
+        promotionType: 'featured',
+        affectedMenuItems: affectedItems,
+        rationale: `${ingredient.name} has excess stock (${parseFloat(String(ingredient.currentStock || 0)).toFixed(0)} ${ingredient.unit}). Featuring drinks that use this ingredient will improve inventory turnover.`,
+        inventoryImpact: {
+          ingredientsAffected: [ingredient.ingredientId],
+          percentageConsumed: 30,
+          wasteReduction: 0,
+        },
+        projectedImpact: {
+          salesUplift: 15,
+          profitImpact: parseFloat(String(ingredient.currentStock || 0)) * parseFloat(String(ingredient.costPerUnit)) * 0.3,
+          wasteReduction: 0,
+        },
+        dataInputs: ['Current stock levels', 'Historical usage rates', 'Recipe mappings'],
+        assumptions: ['Featured placement drives 15% sales increase', 'No discount required'],
+        priority: 'medium',
+      });
+    }
+  }
+  
+  // Generate suggestions based on trending drinks
+  for (const trending of trendingDrinks.slice(0, 2)) {
+    const menuItem = allMenuItems.find(m => m.itemId === trending.itemId);
+    if (menuItem) {
+      suggestions.push({
+        id: `trending-${trending.itemId}`,
+        title: `Capitalize on Trend: ${menuItem.itemName}`,
+        promotionType: 'featured',
+        affectedMenuItems: [trending.itemId],
+        rationale: `${menuItem.itemName} shows ${(trending.trend * 100).toFixed(0)}% sales acceleration. Amplifying this trend with prominent placement can maximize revenue.`,
+        inventoryImpact: {
+          ingredientsAffected: [],
+          percentageConsumed: 0,
+          wasteReduction: 0,
+        },
+        projectedImpact: {
+          salesUplift: 20,
+          profitImpact: trending.total * parseFloat(String(menuItem.salesPrice)) * 0.2 * 0.6,
+          wasteReduction: 0,
+        },
+        dataInputs: ['Sales transaction history', 'Trend analysis'],
+        assumptions: ['Trend continues for 2 weeks', 'Featured placement adds 20% to existing growth'],
+        priority: 'medium',
+      });
+    }
+  }
+  
+  return suggestions;
 }

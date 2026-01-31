@@ -66,3 +66,23 @@
 - [x] Verify Profitability tab derives costs from ingredient cost per unit
 - [x] Verify Procurement tab aggregates ingredient-level reorder needs
 - [x] Ensure editing ingredient cost updates all dependent calculations automatically
+
+
+## Navigation Reorganization & Profitability Enhancements
+- [x] Move Profitability tab under Strategy & Insights section
+- [x] Remove Goal text field from Profitability tab
+- [x] Sync Monthly Profit Goal between Strategy and Profitability pages
+- [x] Add sorting to Profitability by Base Drink table (sort by profit or avg margin)
+
+## Promotions Component
+- [x] Create database schema for promotions (active and suggested)
+- [x] Build Active Promotions section with status tracking (planned/running/completed)
+- [x] Display promotion details (name, affected items, period, status)
+- [x] Show expected vs actual impact (sales volume, inventory depletion, profit)
+- [x] Build Suggested Promotions section with ranked recommendations
+- [x] Include clear rationale for each suggestion (expiry risk, demand trends, margin opportunity)
+- [x] Show inventory impact (percentage of at-risk inventory consumed)
+- [x] Display projected impact (sales uplift, profit impact, waste reduction)
+- [x] Add promotion activation controls (approve/modify/ignore)
+- [x] Ensure all promotions are advisory only with full user control
+- [x] Add explainability for each suggestion (data inputs, key assumptions)

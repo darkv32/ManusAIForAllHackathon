@@ -16,6 +16,7 @@ import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
 import StockInput from "./pages/StockInput";
 import Strategy from "./pages/Strategy";
+import Promotions from "./pages/Promotions";
 
 // Protected Route wrapper - redirects to login if not authenticated
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -59,6 +60,9 @@ function Router() {
       </Route>
       <Route path="/strategy">
         <ProtectedRoute component={Strategy} />
+      </Route>
+      <Route path="/promotions">
+        <ProtectedRoute component={Promotions} />
       </Route>
       <Route path="/stock-input">
         <ProtectedRoute component={StockInput} />

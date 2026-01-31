@@ -123,3 +123,49 @@ export const draftMenuItems = mysqlTable("draftMenuItems", {
 
 export type DraftMenuItem = typeof draftMenuItems.$inferSelect;
 export type InsertDraftMenuItem = typeof draftMenuItems.$inferInsert;
+
+
+/**
+ * Promotions table - stores active and planned promotions
+ */
+export const promotions = mysqlTable("promotions", {
+  id: int("id").autoincrement().primaryKey(),
+  promotionId: varchar("promotionId", { length: 32 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  promotionType: mysqlEnum("promotionType", ["featured", "limited_time", "bundle", "discount", "seasonal"]).notNull(),
+  affectedMenuItems: text("affectedMenuItems").notNull(), // JSON array of menu item IDs
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate").notNull(),
+  status: mysqlEnum("status", ["planned", "running", "completed", "cancelled"]).default("planned").notNull(),
+  // Expected impact
+  expectedSalesVolume: int("expectedSalesVolume"),
+  expectedInventoryDepletion: decimal("expectedInventoryDepletion", { precision: 5, scale: 2 }), // percentage
+  expectedProfitContribution: decimal("expectedProfitContribution", { precision: 10, scale: 2 }),
+  // Actual impact (filled after completion)
+  actualSalesVolume: int("actualSalesVolume"),
+  actualInventoryDepletion: decimal("actualInventoryDepletion", { precision: 5, scale: 2 }),
+  actualProfitContribution: decimal("actualProfitContribution", { precision: 10, scale: 2 }),
+  // Metadata
+  rationale: text("rationale"),
+  dataInputs: text("dataInputs"), // JSON describing data sources used
+  assumptions: text("assumptions"), // JSON describing key assumptions
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Promotion = typeof promotions.$inferSelect;
+export type InsertPromotion = typeof promotions.$inferInsert;
+
+/**
+ * App settings table - stores application-wide settings like monthly profit goal
+ */
+export const appSettings = mysqlTable("appSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  settingKey: varchar("settingKey", { length: 64 }).notNull().unique(),
+  settingValue: text("settingValue").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AppSetting = typeof appSettings.$inferSelect;
+export type InsertAppSetting = typeof appSettings.$inferInsert;

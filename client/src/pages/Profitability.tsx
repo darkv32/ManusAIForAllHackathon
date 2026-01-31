@@ -27,6 +27,9 @@ import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   Check,
   ChevronDown,
   ChevronRight,
@@ -42,7 +45,7 @@ import {
   TrendingUp,
   Upload,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -139,13 +142,50 @@ function MarginBadge({ margin }: { margin: number }) {
 export default function Profitability() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [monthlyGoal, setMonthlyGoal] = useState(15000);
+  const [sortField, setSortField] = useState<'baseDrink' | 'quantity' | 'revenue' | 'profit' | 'margin'>('profit');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   const [aiInsights, setAiInsights] = useState<EnhancedAiInsights | null>(null);
   const [selectedDrink, setSelectedDrink] = useState<ProposedDrink | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const profitabilityQuery = trpc.sales.profitability.useQuery();
+  const monthlyGoalQuery = trpc.settings.getMonthlyProfitGoal.useQuery();
+  const setMonthlyGoalMutation = trpc.settings.setMonthlyProfitGoal.useMutation({
+    onSuccess: () => {
+      utils.settings.getMonthlyProfitGoal.invalidate();
+      toast.success('Monthly profit goal updated');
+    },
+  });
   const utils = trpc.useUtils();
+
+  // Sync monthly goal from database
+  useEffect(() => {
+    if (monthlyGoalQuery.data !== undefined) {
+      setMonthlyGoal(monthlyGoalQuery.data);
+    }
+  }, [monthlyGoalQuery.data]);
+
+  const handleGoalChange = (newGoal: number) => {
+    setMonthlyGoal(newGoal);
+    setMonthlyGoalMutation.mutate({ goal: newGoal });
+  };
+
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field: typeof sortField) => {
+    if (sortField !== field) return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-4 w-4 ml-1" />
+      : <ArrowDown className="h-4 w-4 ml-1" />;
+  };
 
   const bulkUploadSales = trpc.sales.bulkUpload.useMutation({
     onSuccess: (data) => {
@@ -234,8 +274,30 @@ export default function Profitability() {
       }
       group.variants.sort((a, b) => b.totalProfit - a.totalProfit);
     });
-    return Array.from(groups.values()).sort((a, b) => b.totalProfit - a.totalProfit);
-  }, [profitabilityQuery.data]);
+    const sorted = Array.from(groups.values());
+    sorted.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'baseDrink':
+          comparison = a.baseDrink.localeCompare(b.baseDrink);
+          break;
+        case 'quantity':
+          comparison = a.totalQuantity - b.totalQuantity;
+          break;
+        case 'revenue':
+          comparison = a.totalRevenue - b.totalRevenue;
+          break;
+        case 'profit':
+          comparison = a.totalProfit - b.totalProfit;
+          break;
+        case 'margin':
+          comparison = a.avgMargin - b.avgMargin;
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+    return sorted;
+  }, [profitabilityQuery.data, sortField, sortDirection]);
 
   const kpis = useMemo(() => {
     if (!profitabilityQuery.data || profitabilityQuery.data.length === 0) {
@@ -503,11 +565,51 @@ export default function Profitability() {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-8"></TableHead>
-                          <TableHead>Base Drink</TableHead>
-                          <TableHead className="text-right">Quantity</TableHead>
-                          <TableHead className="text-right">Revenue</TableHead>
-                          <TableHead className="text-right">Profit</TableHead>
-                          <TableHead className="text-right">Avg Margin</TableHead>
+                          <TableHead 
+                            className="cursor-pointer hover:bg-muted/50 select-none"
+                            onClick={() => handleSort('baseDrink')}
+                          >
+                            <div className="flex items-center">
+                              Base Drink
+                              {getSortIcon('baseDrink')}
+                            </div>
+                          </TableHead>
+                          <TableHead 
+                            className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                            onClick={() => handleSort('quantity')}
+                          >
+                            <div className="flex items-center justify-end">
+                              Quantity
+                              {getSortIcon('quantity')}
+                            </div>
+                          </TableHead>
+                          <TableHead 
+                            className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                            onClick={() => handleSort('revenue')}
+                          >
+                            <div className="flex items-center justify-end">
+                              Revenue
+                              {getSortIcon('revenue')}
+                            </div>
+                          </TableHead>
+                          <TableHead 
+                            className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                            onClick={() => handleSort('profit')}
+                          >
+                            <div className="flex items-center justify-end">
+                              Profit
+                              {getSortIcon('profit')}
+                            </div>
+                          </TableHead>
+                          <TableHead 
+                            className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                            onClick={() => handleSort('margin')}
+                          >
+                            <div className="flex items-center justify-end">
+                              Avg Margin
+                              {getSortIcon('margin')}
+                            </div>
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
