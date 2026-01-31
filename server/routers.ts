@@ -51,10 +51,20 @@ export const appRouter = router({
         unit: z.string().optional(),
         costPerUnit: z.string().optional(),
         currentStock: z.string().optional(),
+        notes: z.string().optional(),
+        expiryDate: z.string().optional(),
+        leadTimeDays: z.number().optional(),
+        minStock: z.string().optional(),
+        reorderPoint: z.string().optional(),
+        supplier: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { ingredientId, ...data } = input;
-        await db.updateIngredient(ingredientId, data);
+        const { ingredientId, expiryDate, ...data } = input;
+        const updateData: Record<string, unknown> = { ...data };
+        if (expiryDate) {
+          updateData.expiryDate = new Date(expiryDate);
+        }
+        await db.updateIngredient(ingredientId, updateData);
         return { success: true };
       }),
     
@@ -80,6 +90,16 @@ export const appRouter = router({
         const count = await db.bulkUpsertIngredients(input.items);
         return { success: true, count };
       }),
+    
+    analytics: publicProcedure
+      .input(z.object({ ingredientId: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getIngredientAnalytics(input.ingredientId);
+      }),
+    
+    allAnalytics: publicProcedure.query(async () => {
+      return await db.getAllIngredientAnalytics();
+    }),
   }),
 
   // ============ MENU ITEMS ============

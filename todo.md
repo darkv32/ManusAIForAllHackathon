@@ -45,3 +45,24 @@
 - [x] Add "Save to Draft Menu" button to save proposed recipes
 - [x] Add "Edit Recipe" button for manual quantity/ingredient adjustments
 - [x] Ensure UI matches Matsu Matcha minimalist aesthetic
+
+
+## Inventory Tab Enhancement - Ingredient Detail View
+- [x] Create IngredientDetailDrawer component with comprehensive insights
+- [x] Add Key Risk & Status Indicators (days to stockout, avg daily usage, inventory value, cost burn rate)
+- [x] Implement Stock Timeline with historical vs projected stock distinction
+- [x] Add projected stockout date visualization
+- [x] Calculate usage velocity trend (increasing/stable/decreasing week-on-week)
+- [x] Show top contributing menu items by percentage of ingredient usage
+- [x] Add Reorder Recommendation with explainability (rationale + impact note)
+- [x] Implement manual controls for current stock, cost per unit, expiry, and notes
+- [x] Add expiry date field to ingredients schema
+- [x] Add notes field to ingredients schema
+- [x] Ensure all AI outputs remain advisory and editable
+
+## Cross-Tab Consistency - Ingredients as Single Source of Truth
+- [x] Ensure ingredients.csv acts as canonical source for ingredient data
+- [x] Verify Menu tab references ingredients by ID only
+- [x] Verify Profitability tab derives costs from ingredient cost per unit
+- [x] Verify Procurement tab aggregates ingredient-level reorder needs
+- [x] Ensure editing ingredient cost updates all dependent calculations automatically

@@ -540,3 +540,265 @@ export async function promoteDraftToActive(id: number): Promise<void> {
   // Update draft status to active
   await db.update(draftMenuItems).set({ status: 'active' }).where(eq(draftMenuItems.id, id));
 }
+
+
+// ============ INGREDIENT ANALYTICS ============
+
+export type IngredientUsageByMenuItem = {
+  menuItemId: string;
+  menuItemName: string;
+  quantityPerServing: number;
+  totalServings: number;
+  totalUsage: number;
+  percentageOfTotal: number;
+};
+
+export type IngredientAnalyticsData = {
+  ingredientId: string;
+  ingredient: Ingredient;
+  // Key metrics
+  averageDailyUsage: number;
+  daysToStockout: number;
+  inventoryValueRemaining: number;
+  costBurnRatePerDay: number;
+  // Velocity trend
+  velocityTrend: 'increasing' | 'stable' | 'decreasing';
+  velocityChangePercent: number;
+  // Usage breakdown
+  usageByMenuItem: IngredientUsageByMenuItem[];
+  // Reorder recommendation
+  recommendedReorderQty: number;
+  recommendedOrderDate: string;
+  reorderRationale: string;
+  inactionImpact: string;
+  // Historical data (last 14 days)
+  dailyUsageHistory: { date: string; usage: number }[];
+  stockHistory: { date: string; stock: number }[];
+  projectedStock: { date: string; stock: number }[];
+  projectedStockoutDate: string | null;
+};
+
+export async function getIngredientAnalytics(ingredientId: string): Promise<IngredientAnalyticsData | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // Get ingredient
+  const ingredient = await getIngredientById(ingredientId);
+  if (!ingredient) return null;
+  
+  // Get all sales data
+  const allSales = await getAllSales();
+  const allRecipes = await getAllRecipes();
+  const allMenuItems = await getAllMenuItems();
+  
+  // Build recipe map: menuItemId -> recipes
+  const recipesByMenuItem = new Map<string, Recipe[]>();
+  for (const recipe of allRecipes) {
+    const existing = recipesByMenuItem.get(recipe.menuItemId) || [];
+    existing.push(recipe);
+    recipesByMenuItem.set(recipe.menuItemId, existing);
+  }
+  
+  // Build menu item map
+  const menuItemMap = new Map(allMenuItems.map(m => [m.itemId, m]));
+  
+  // Calculate usage by menu item
+  const usageByMenuItemMap = new Map<string, { menuItemName: string; quantityPerServing: number; totalServings: number }>();
+  
+  for (const sale of allSales) {
+    const recipes = recipesByMenuItem.get(sale.menuItemId) || [];
+    const ingredientRecipe = recipes.find(r => r.ingredientId === ingredientId);
+    
+    if (ingredientRecipe) {
+      const existing = usageByMenuItemMap.get(sale.menuItemId) || {
+        menuItemName: sale.itemName,
+        quantityPerServing: Number(ingredientRecipe.quantity),
+        totalServings: 0,
+      };
+      existing.totalServings += sale.quantity;
+      usageByMenuItemMap.set(sale.menuItemId, existing);
+    }
+  }
+  
+  // Convert to array and calculate percentages
+  let totalUsage = 0;
+  const usageByMenuItem: IngredientUsageByMenuItem[] = [];
+  
+  for (const [menuItemId, data] of Array.from(usageByMenuItemMap)) {
+    const usage = data.quantityPerServing * data.totalServings;
+    totalUsage += usage;
+    usageByMenuItem.push({
+      menuItemId,
+      menuItemName: data.menuItemName,
+      quantityPerServing: data.quantityPerServing,
+      totalServings: data.totalServings,
+      totalUsage: usage,
+      percentageOfTotal: 0, // Will calculate after
+    });
+  }
+  
+  // Calculate percentages
+  for (const item of usageByMenuItem) {
+    item.percentageOfTotal = totalUsage > 0 ? (item.totalUsage / totalUsage) * 100 : 0;
+  }
+  
+  // Sort by usage descending
+  usageByMenuItem.sort((a, b) => b.totalUsage - a.totalUsage);
+  
+  // Calculate daily usage from sales data
+  const salesByDate = new Map<string, number>();
+  for (const sale of allSales) {
+    const date = new Date(sale.timestamp).toISOString().split('T')[0];
+    const recipes = recipesByMenuItem.get(sale.menuItemId) || [];
+    const ingredientRecipe = recipes.find(r => r.ingredientId === ingredientId);
+    
+    if (ingredientRecipe) {
+      const usage = Number(ingredientRecipe.quantity) * sale.quantity;
+      salesByDate.set(date, (salesByDate.get(date) || 0) + usage);
+    }
+  }
+  
+  // Get last 14 days of usage
+  const today = new Date();
+  const dailyUsageHistory: { date: string; usage: number }[] = [];
+  
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    dailyUsageHistory.push({
+      date: dateStr,
+      usage: salesByDate.get(dateStr) || 0,
+    });
+  }
+  
+  // Calculate average daily usage (last 7 days)
+  const last7Days = dailyUsageHistory.slice(-7);
+  const last7DaysUsage = last7Days.reduce((sum, d) => sum + d.usage, 0);
+  const averageDailyUsage = last7DaysUsage / 7;
+  
+  // Calculate velocity trend (compare last 7 days vs previous 7 days)
+  const prev7Days = dailyUsageHistory.slice(0, 7);
+  const prev7DaysUsage = prev7Days.reduce((sum, d) => sum + d.usage, 0);
+  const prev7DaysAvg = prev7DaysUsage / 7;
+  
+  let velocityTrend: 'increasing' | 'stable' | 'decreasing' = 'stable';
+  let velocityChangePercent = 0;
+  
+  if (prev7DaysAvg > 0) {
+    velocityChangePercent = ((averageDailyUsage - prev7DaysAvg) / prev7DaysAvg) * 100;
+    if (velocityChangePercent > 10) {
+      velocityTrend = 'increasing';
+    } else if (velocityChangePercent < -10) {
+      velocityTrend = 'decreasing';
+    }
+  }
+  
+  // Calculate days to stockout
+  const currentStock = Number(ingredient.currentStock);
+  const daysToStockout = averageDailyUsage > 0 ? Math.floor(currentStock / averageDailyUsage) : 999;
+  
+  // Calculate inventory value remaining
+  const costPerUnit = Number(ingredient.costPerUnit);
+  const inventoryValueRemaining = currentStock * costPerUnit;
+  
+  // Calculate cost burn rate per day
+  const costBurnRatePerDay = averageDailyUsage * costPerUnit;
+  
+  // Generate stock history (simulated based on usage)
+  const stockHistory: { date: string; stock: number }[] = [];
+  let simulatedStock = currentStock + last7DaysUsage; // Estimate starting stock
+  
+  for (const day of last7Days) {
+    simulatedStock -= day.usage;
+    stockHistory.push({
+      date: day.date,
+      stock: Math.max(0, simulatedStock),
+    });
+  }
+  
+  // Generate projected stock (next 7 days)
+  const projectedStock: { date: string; stock: number }[] = [];
+  let projectedStockValue = currentStock;
+  let projectedStockoutDate: string | null = null;
+  
+  for (let i = 1; i <= 7; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    projectedStockValue -= averageDailyUsage;
+    
+    if (projectedStockValue <= 0 && !projectedStockoutDate) {
+      projectedStockoutDate = dateStr;
+    }
+    
+    projectedStock.push({
+      date: dateStr,
+      stock: Math.max(0, projectedStockValue),
+    });
+  }
+  
+  // Calculate reorder recommendation
+  const leadTimeDays = ingredient.leadTimeDays || 3;
+  const safetyStockDays = 2;
+  const targetCoverageDays = 14;
+  
+  // Recommended reorder quantity to cover target days
+  const recommendedReorderQty = Math.ceil(averageDailyUsage * targetCoverageDays);
+  
+  // Recommended order date (lead time before stockout)
+  const orderByDays = Math.max(0, daysToStockout - leadTimeDays - safetyStockDays);
+  const orderByDate = new Date(today);
+  orderByDate.setDate(orderByDate.getDate() + orderByDays);
+  const recommendedOrderDate = orderByDate.toISOString().split('T')[0];
+  
+  // Generate rationale
+  const reorderRationale = `Based on average daily usage of ${averageDailyUsage.toFixed(1)} ${ingredient.unit} and a ${leadTimeDays}-day supplier lead time, ordering ${recommendedReorderQty} ${ingredient.unit} will provide ${targetCoverageDays} days of coverage.`;
+  
+  // Generate inaction impact
+  let inactionImpact = '';
+  if (daysToStockout <= leadTimeDays) {
+    inactionImpact = `Critical: Stock will run out before new order arrives. Immediate action required.`;
+  } else if (daysToStockout <= leadTimeDays + safetyStockDays) {
+    inactionImpact = `High risk: Expected stockout during peak hours if not reordered within ${orderByDays} days.`;
+  } else if (daysToStockout <= 7) {
+    inactionImpact = `Moderate risk: Stock running low. Order soon to maintain buffer.`;
+  } else {
+    inactionImpact = `Low risk: Adequate stock levels. Monitor usage trends.`;
+  }
+  
+  return {
+    ingredientId,
+    ingredient,
+    averageDailyUsage,
+    daysToStockout,
+    inventoryValueRemaining,
+    costBurnRatePerDay,
+    velocityTrend,
+    velocityChangePercent,
+    usageByMenuItem: usageByMenuItem.slice(0, 5), // Top 5
+    recommendedReorderQty,
+    recommendedOrderDate,
+    reorderRationale,
+    inactionImpact,
+    dailyUsageHistory,
+    stockHistory,
+    projectedStock,
+    projectedStockoutDate,
+  };
+}
+
+export async function getAllIngredientAnalytics(): Promise<IngredientAnalyticsData[]> {
+  const allIngredients = await getAllIngredients();
+  const analytics: IngredientAnalyticsData[] = [];
+  
+  for (const ingredient of allIngredients) {
+    const data = await getIngredientAnalytics(ingredient.ingredientId);
+    if (data) {
+      analytics.push(data);
+    }
+  }
+  
+  return analytics;
+}

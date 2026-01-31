@@ -1,11 +1,9 @@
 /**
- * Inventory Management Page - Refined Layout
+ * Inventory Management Page - Enhanced with Decision-Critical Insights
  * Design: Premium Matsu Matcha Brand
- * - Single unified Priority Inventory table (no duplication)
- * - Search bar at top interacting with main table
- * - Summary cards showing key metrics
- * - CSV import helper moved to bottom
- * - AI-powered projections with manual-first data entry
+ * - Comprehensive ingredient detail view with risk indicators
+ * - Real-time analytics from database
+ * - Ingredients as single source of truth across all tabs
  */
 
 import DashboardLayout from '@/components/DashboardLayout';
@@ -27,46 +25,43 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { parseIngredientsCSV, type IngredientRecord } from '@/lib/csvParser';
-import {
-  getIngredientAnalytics,
-  getPriorityIngredients,
-  ingredientAnalytics,
-  inventoryItems as defaultInventoryItems,
-  type IngredientAnalytics,
-  type InventoryItem
-} from '@/lib/mockData';
+import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
   ArrowUpDown,
   Box,
   Calendar,
+  Check,
   ChevronRight,
   Clock,
   DollarSign,
   Edit3,
   FileSpreadsheet,
   Filter,
+  Flame,
   HelpCircle,
   Leaf,
+  Loader2,
   Milk,
   Package,
+  Save,
   Search,
   ShoppingCart,
   Sparkles,
   TrendingDown,
+  TrendingUp,
   Upload,
   X
 } from 'lucide-react';
-import { useData } from '@/contexts/DataContext';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
-  Cell,
   ComposedChart,
   Line,
   ReferenceLine,
@@ -82,6 +77,9 @@ const categoryIcons: Record<string, React.ReactNode> = {
   powder: <Sparkles className="h-4 w-4" />,
   milk: <Milk className="h-4 w-4" />,
   fruit: <Leaf className="h-4 w-4" />,
+  sweetener: <Box className="h-4 w-4" />,
+  topping: <Box className="h-4 w-4" />,
+  flavoring: <Leaf className="h-4 w-4" />,
   equipment: <Package className="h-4 w-4" />,
   other: <Box className="h-4 w-4" />
 };
@@ -111,47 +109,35 @@ const urgencyConfig = {
   }
 };
 
-// Convert IngredientRecord to InventoryItem format
-function convertToInventoryItem(record: IngredientRecord): InventoryItem {
-  return {
-    id: record.ingredient_id,
-    name: record.name,
-    category: record.category.toLowerCase() as InventoryItem['category'],
-    unit: record.unit,
-    currentStock: record.current_stock,
-    minStock: Math.floor(record.current_stock * 0.3),
-    maxStock: Math.ceil(record.current_stock * 2),
-    costPerUnit: record.cost_per_unit,
-    supplier: 'Imported via CSV',
-    shelfLife: 'long' as const,
-    expiryDate: undefined,
-    lastRestocked: new Date().toISOString().split('T')[0]
-  };
+// Get urgency status based on days to stockout
+function getUrgencyFromDays(days: number): 'critical' | 'soon' | 'monitor' {
+  if (days <= 3) return 'critical';
+  if (days <= 7) return 'soon';
+  return 'monitor';
 }
 
-// Summary cards component - refined with clear definitions
-function InventorySummary({ items }: { items: InventoryItem[] }) {
-  // Total Inventory Value: sum of (current stock × cost per unit), excluding expired items
-  const now = new Date();
-  const totalValue = items
-    .filter(item => !item.expiryDate || new Date(item.expiryDate) > now)
-    .reduce((sum, item) => sum + item.currentStock * item.costPerUnit, 0);
-  
-  const lowStockCount = items.filter((item) => item.currentStock <= item.minStock).length;
-  const expiringCount = items.filter(
-    (item) => item.expiryDate && new Date(item.expiryDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  ).length;
-  
-  // Calculate average days of stock remaining
-  const itemsWithAnalytics = items.map(item => ({
-    item,
-    analytics: getIngredientAnalytics(item.id)
-  })).filter(x => x.analytics);
-  
-  const avgDaysRemaining = itemsWithAnalytics.length > 0
-    ? Math.round(itemsWithAnalytics.reduce((sum, x) => sum + (x.analytics?.projectedDaysRemaining || 0), 0) / itemsWithAnalytics.length)
-    : 0;
+// Velocity trend icon component
+function VelocityTrendIcon({ trend, className }: { trend: 'increasing' | 'stable' | 'decreasing'; className?: string }) {
+  if (trend === 'increasing') {
+    return <TrendingUp className={cn('text-amber-500', className)} />;
+  } else if (trend === 'decreasing') {
+    return <TrendingDown className={cn('text-emerald-500', className)} />;
+  }
+  return <ArrowUp className={cn('text-muted-foreground rotate-90', className)} />;
+}
 
+// Summary cards component
+function InventorySummary({ 
+  totalValue, 
+  lowStockCount, 
+  expiringCount, 
+  avgDaysRemaining 
+}: { 
+  totalValue: number;
+  lowStockCount: number;
+  expiringCount: number;
+  avgDaysRemaining: number;
+}) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card className="wabi-card">
@@ -160,7 +146,7 @@ function InventorySummary({ items }: { items: InventoryItem[] }) {
             <div>
               <p className="text-sm text-muted-foreground">Total Inventory Value</p>
               <p className="text-2xl font-display font-medium mono-numbers">${totalValue.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-1">Cost price × stock (excl. expired)</p>
+              <p className="text-xs text-muted-foreground mt-1">Cost price × stock</p>
             </div>
             <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
               <DollarSign className="h-5 w-5" />
@@ -174,7 +160,7 @@ function InventorySummary({ items }: { items: InventoryItem[] }) {
             <div>
               <p className="text-sm text-muted-foreground">Low Stock Items</p>
               <p className="text-2xl font-display font-medium">{lowStockCount}</p>
-              <p className="text-xs text-muted-foreground mt-1">Below minimum threshold</p>
+              <p className="text-xs text-muted-foreground mt-1">Needs reorder soon</p>
             </div>
             <div className="p-2.5 rounded-lg bg-amber-100 text-amber-600">
               <TrendingDown className="h-5 w-5" />
@@ -214,283 +200,522 @@ function InventorySummary({ items }: { items: InventoryItem[] }) {
   );
 }
 
-// Ingredient Detail Drawer Component
+// Enhanced Ingredient Detail Drawer Component
 function IngredientDetailDrawer({
-  ingredient,
-  analytics,
+  ingredientId,
   isOpen,
-  onClose
+  onClose,
+  onUpdate
 }: {
-  ingredient: InventoryItem | null;
-  analytics: IngredientAnalytics | null;
+  ingredientId: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onUpdate: () => void;
 }) {
   const [editMode, setEditMode] = useState(false);
-  const [currentStock, setCurrentStock] = useState(ingredient?.currentStock || 0);
-  const [costPerUnit, setCostPerUnit] = useState(ingredient?.costPerUnit || 0);
-  const [leadTime, setLeadTime] = useState(analytics?.leadTimeDays || 3);
-  const [notes, setNotes] = useState('');
+  const [editedStock, setEditedStock] = useState<string>('');
+  const [editedCost, setEditedCost] = useState<string>('');
+  const [editedNotes, setEditedNotes] = useState<string>('');
+  const [editedExpiry, setEditedExpiry] = useState<string>('');
 
-  // Reset state when ingredient changes
-  useMemo(() => {
-    if (ingredient) {
-      setCurrentStock(ingredient.currentStock);
-      setCostPerUnit(ingredient.costPerUnit);
-      setLeadTime(analytics?.leadTimeDays || 3);
+  // Fetch analytics data
+  const { data: analytics, isLoading } = trpc.ingredients.analytics.useQuery(
+    { ingredientId: ingredientId || '' },
+    { enabled: !!ingredientId && isOpen }
+  );
+
+  // Update mutation
+  const updateMutation = trpc.ingredients.update.useMutation({
+    onSuccess: () => {
+      toast.success('Ingredient updated successfully');
       setEditMode(false);
+      onUpdate();
+    },
+    onError: (error) => {
+      toast.error(`Failed to update: ${error.message}`);
     }
-  }, [ingredient, analytics]);
-
-  if (!ingredient || !analytics) return null;
-
-  // Generate stock timeline data
-  const stockTimelineData = analytics.stockHistory.map((entry, index) => {
-    return {
-      date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      actual: entry.stock,
-    };
   });
 
-  // Add projected future data
-  const projectedData = analytics.projectedStock.map((entry) => ({
-    date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    projected: entry.stock,
-  }));
+  // Reset edit state when ingredient changes
+  useMemo(() => {
+    if (analytics?.ingredient) {
+      setEditedStock(String(analytics.ingredient.currentStock || 0));
+      setEditedCost(String(analytics.ingredient.costPerUnit));
+      setEditedNotes(analytics.ingredient.notes || '');
+      setEditedExpiry(analytics.ingredient.expiryDate ? new Date(analytics.ingredient.expiryDate).toISOString().split('T')[0] : '');
+      setEditMode(false);
+    }
+  }, [analytics]);
 
-  const fullTimelineData = [...stockTimelineData.slice(-7), ...projectedData];
+  const handleSave = () => {
+    if (!ingredientId) return;
+    
+    updateMutation.mutate({
+      ingredientId,
+      currentStock: editedStock,
+      costPerUnit: editedCost,
+      notes: editedNotes,
+      expiryDate: editedExpiry || undefined,
+    });
+  };
 
-  // Calculate expected coverage after reorder
-  const expectedCoverageAfterReorder = Math.round(
-    (ingredient.currentStock + analytics.recommendedReorderQty) / analytics.averageDailyUsage
-  );
+  if (!ingredientId) return null;
+
+  const ingredient = analytics?.ingredient;
+  const urgency = analytics ? getUrgencyFromDays(analytics.daysToStockout) : 'monitor';
+
+  // Prepare chart data
+  const stockTimelineData = analytics ? [
+    ...analytics.stockHistory.map(entry => ({
+      date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      actual: entry.stock,
+      projected: null as number | null,
+    })),
+    ...analytics.projectedStock.map(entry => ({
+      date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      actual: null as number | null,
+      projected: entry.stock,
+    }))
+  ] : [];
+
+  const usageChartData = analytics?.usageByMenuItem.map(item => ({
+    name: item.menuItemName.length > 20 ? item.menuItemName.substring(0, 20) + '...' : item.menuItemName,
+    usage: item.totalUsage,
+    percentage: item.percentageOfTotal,
+  })) || [];
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="max-h-[90vh]">
+      <DrawerContent className="max-h-[92vh]">
         <div className="overflow-y-auto">
-          <DrawerHeader className="border-b">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                {categoryIcons[ingredient.category]}
-              </div>
-              <div>
-                <DrawerTitle className="font-display text-xl">{ingredient.name}</DrawerTitle>
-                <DrawerDescription className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="capitalize">{ingredient.category}</Badge>
-                  <span>•</span>
-                  <span>{ingredient.supplier}</span>
-                </DrawerDescription>
-              </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          </DrawerHeader>
-
-          <div className="p-6 space-y-6">
-            {/* Stock Timeline Chart */}
-            <div>
-              <h3 className="font-display text-lg mb-4">Stock Timeline</h3>
-              <Card className="wabi-card">
-                <CardContent className="p-4">
-                  <div className="h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={fullTimelineData}>
-                        <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                        <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                        <Tooltip />
-                        <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" label={{ value: 'Out of Stock', fill: '#ef4444', fontSize: 10 }} />
-                        <Area type="monotone" dataKey="actual" fill="#1a472a" fillOpacity={0.2} stroke="#1a472a" strokeWidth={2} />
-                        <Line type="monotone" dataKey="projected" stroke="#1a472a" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                      </ComposedChart>
-                    </ResponsiveContainer>
+          ) : analytics && ingredient ? (
+            <>
+              <DrawerHeader className="border-b">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    {categoryIcons[ingredient.category.toLowerCase()] || <Box className="h-4 w-4" />}
                   </div>
-                  <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-0.5 bg-primary" />
-                      <span>Historical</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-0.5 bg-primary border-dashed border-t-2 border-primary" style={{ borderStyle: 'dashed' }} />
-                      <span>Projected</span>
-                    </div>
+                  <div className="flex-1">
+                    <DrawerTitle className="font-display text-xl">{ingredient.name}</DrawerTitle>
+                    <DrawerDescription className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="capitalize">{ingredient.category}</Badge>
+                      <span>•</span>
+                      <span>{ingredient.unit}</span>
+                      {ingredient.supplier && (
+                        <>
+                          <span>•</span>
+                          <span>{ingredient.supplier}</span>
+                        </>
+                      )}
+                    </DrawerDescription>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <Badge className={cn('text-sm', urgencyConfig[urgency].badge)}>
+                    {urgencyConfig[urgency].label}
+                  </Badge>
+                </div>
+              </DrawerHeader>
 
-            {/* Usage Breakdown & Reorder Recommendation */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Usage Breakdown */}
-              <div>
-                <h3 className="font-display text-lg mb-4">Usage by Menu Item</h3>
-                <Card className="wabi-card">
-                  <CardContent className="p-4">
-                    <div className="h-[180px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={analytics.usageByMenuItem} layout="vertical">
-                          <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                          <YAxis 
-                            type="category" 
-                            dataKey="menuItem" 
-                            tick={{ fontSize: 10 }} 
-                            tickLine={false} 
-                            axisLine={false}
-                            width={100}
-                          />
-                          <Tooltip />
-                          <Bar dataKey="usage" fill="#1a472a" radius={[0, 4, 4, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Reorder Recommendation */}
-              <div>
-                <h3 className="font-display text-lg mb-4 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  AI Reorder Recommendation
-                </h3>
-                <Card className="wabi-card border-l-4 border-l-primary">
-                  <CardContent className="p-4 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Suggested Quantity</p>
-                        <p className="text-xl font-display font-medium mono-numbers">
-                          {analytics.recommendedReorderQty} {ingredient.unit}
+              <div className="p-6 space-y-6">
+                {/* Key Risk & Status Indicators */}
+                <div>
+                  <h3 className="font-display text-lg mb-4 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    Key Risk Indicators
+                  </h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className={cn(
+                      'wabi-card',
+                      analytics.daysToStockout <= 3 && 'border-l-4 border-l-red-500',
+                      analytics.daysToStockout <= 7 && analytics.daysToStockout > 3 && 'border-l-4 border-l-amber-500'
+                    )}>
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground mb-1">Days to Stockout</p>
+                        <p className={cn(
+                          'text-2xl font-display font-medium mono-numbers',
+                          analytics.daysToStockout <= 3 && 'text-red-600',
+                          analytics.daysToStockout <= 7 && analytics.daysToStockout > 3 && 'text-amber-600'
+                        )}>
+                          {analytics.daysToStockout > 100 ? '100+' : analytics.daysToStockout}
                         </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Order By</p>
-                        <p className="text-xl font-display font-medium">
-                          {new Date(analytics.recommendedOrderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {analytics.projectedStockoutDate 
+                            ? `Est. ${new Date(analytics.projectedStockoutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                            : 'No stockout projected'
+                          }
                         </p>
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Lead Time</span>
+                      </CardContent>
+                    </Card>
+                    <Card className="wabi-card">
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground mb-1">Avg Daily Usage</p>
                         <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            value={leadTime}
-                            onChange={(e) => setLeadTime(parseInt(e.target.value) || 1)}
-                            className="w-16 h-8 text-center mono-numbers"
-                            min={1}
-                          />
-                          <span className="text-muted-foreground">days</span>
+                          <p className="text-2xl font-display font-medium mono-numbers">
+                            {analytics.averageDailyUsage.toFixed(1)}
+                          </p>
+                          <VelocityTrendIcon trend={analytics.velocityTrend} className="h-4 w-4" />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {ingredient.unit}/day • {analytics.velocityTrend === 'increasing' ? '↑' : analytics.velocityTrend === 'decreasing' ? '↓' : '→'} {Math.abs(analytics.velocityChangePercent).toFixed(0)}% WoW
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="wabi-card">
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground mb-1">Inventory Value</p>
+                        <p className="text-2xl font-display font-medium mono-numbers">
+                          ${analytics.inventoryValueRemaining.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {Number(ingredient.currentStock).toFixed(1)} {ingredient.unit} remaining
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="wabi-card">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Flame className="h-3 w-3 text-orange-500" />
+                          <p className="text-xs text-muted-foreground">Cost Burn Rate</p>
+                        </div>
+                        <p className="text-2xl font-display font-medium mono-numbers">
+                          ${analytics.costBurnRatePerDay.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">per day consumed</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Stock Timeline Chart */}
+                <div>
+                  <h3 className="font-display text-lg mb-4">Stock Timeline</h3>
+                  <Card className="wabi-card">
+                    <CardContent className="p-4">
+                      <div className="h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ComposedChart data={stockTimelineData}>
+                            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                            <Tooltip 
+                              contentStyle={{
+                                backgroundColor: 'oklch(0.99 0.008 85)',
+                                border: '1px solid oklch(0.88 0.015 85)',
+                                borderRadius: '8px',
+                              }}
+                            />
+                            <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
+                            <Area 
+                              type="monotone" 
+                              dataKey="actual" 
+                              fill="#1a472a" 
+                              fillOpacity={0.2} 
+                              stroke="#1a472a" 
+                              strokeWidth={2}
+                              name="Historical"
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="projected" 
+                              stroke="#1a472a" 
+                              strokeWidth={2} 
+                              strokeDasharray="5 5" 
+                              dot={false}
+                              name="Projected"
+                            />
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-0.5 bg-primary" />
+                          <span>Historical</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-0.5 bg-primary" style={{ borderTop: '2px dashed' }} />
+                          <span>Projected (estimate based on recent sales)</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Coverage After Reorder</span>
-                        <span className="font-medium mono-numbers">{expectedCoverageAfterReorder} days</span>
-                      </div>
-                    </div>
+                      {analytics.projectedStockoutDate && (
+                        <div className="mt-3 p-2 bg-red-50 rounded-lg border border-red-200">
+                          <p className="text-sm text-red-700 flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            Projected stockout: {new Date(analytics.projectedStockoutDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
 
-                    <Button className="w-full gap-2">
-                      <ShoppingCart className="h-4 w-4" />
-                      Add to Order List
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                {/* Consumption Insights & Reorder Recommendation */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Consumption Insights */}
+                  <div>
+                    <h3 className="font-display text-lg mb-4">Consumption Insights</h3>
+                    <Card className="wabi-card">
+                      <CardContent className="p-4 space-y-4">
+                        {/* Velocity Trend */}
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <VelocityTrendIcon trend={analytics.velocityTrend} className="h-5 w-5" />
+                            <span className="text-sm font-medium">Usage Velocity</span>
+                          </div>
+                          <Badge variant={
+                            analytics.velocityTrend === 'increasing' ? 'destructive' : 
+                            analytics.velocityTrend === 'decreasing' ? 'default' : 'secondary'
+                          }>
+                            {analytics.velocityTrend === 'increasing' ? 'Increasing' : 
+                             analytics.velocityTrend === 'decreasing' ? 'Decreasing' : 'Stable'}
+                            {' '}{Math.abs(analytics.velocityChangePercent).toFixed(0)}%
+                          </Badge>
+                        </div>
 
-            {/* Manual Edit Controls */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-lg">Manual Adjustments</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditMode(!editMode)}
-                  className="gap-2"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  {editMode ? 'Cancel' : 'Edit'}
-                </Button>
-              </div>
-              <Card className="wabi-card">
-                <CardContent className="p-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="current-stock">Current Stock</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="current-stock"
-                          type="number"
-                          value={currentStock}
-                          onChange={(e) => setCurrentStock(parseFloat(e.target.value) || 0)}
-                          disabled={!editMode}
-                          className="mono-numbers"
-                        />
-                        <span className="text-sm text-muted-foreground">{ingredient.unit}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cost-per-unit">Cost per Unit</Label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">$</span>
-                        <Input
-                          id="cost-per-unit"
-                          type="number"
-                          step="0.01"
-                          value={costPerUnit}
-                          onChange={(e) => setCostPerUnit(parseFloat(e.target.value) || 0)}
-                          disabled={!editMode}
-                          className="mono-numbers"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="expiry-date">Expiry Date</Label>
-                      <Input
-                        id="expiry-date"
-                        type="date"
-                        defaultValue={ingredient.expiryDate}
-                        disabled={!editMode}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="last-restocked">Last Restocked</Label>
-                      <Input
-                        id="last-restocked"
-                        type="date"
-                        defaultValue={ingredient.lastRestocked}
-                        disabled={!editMode}
-                      />
-                    </div>
+                        {/* Top Contributing Menu Items */}
+                        <div>
+                          <p className="text-sm font-medium mb-3">Top Contributing Menu Items</p>
+                          {usageChartData.length > 0 ? (
+                            <div className="h-[150px]">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={usageChartData} layout="vertical">
+                                  <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                                  <YAxis 
+                                    type="category" 
+                                    dataKey="name" 
+                                    tick={{ fontSize: 10 }} 
+                                    tickLine={false} 
+                                    axisLine={false}
+                                    width={120}
+                                  />
+                                  <Tooltip 
+                                    formatter={(value: number, name: string) => [
+                                      name === 'usage' ? `${value.toFixed(1)} ${ingredient.unit}` : `${value.toFixed(1)}%`,
+                                      name === 'usage' ? 'Usage' : 'Share'
+                                    ]}
+                                  />
+                                  <Bar dataKey="usage" fill="#1a472a" radius={[0, 4, 4, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              No menu item usage data available
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Usage breakdown list */}
+                        {analytics.usageByMenuItem.length > 0 && (
+                          <div className="space-y-2">
+                            {analytics.usageByMenuItem.slice(0, 3).map((item, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground truncate max-w-[60%]">{item.menuItemName}</span>
+                                <span className="mono-numbers font-medium">{item.percentageOfTotal.toFixed(1)}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
                   </div>
-                  <div className="mt-4 space-y-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      disabled={!editMode}
-                      placeholder="Add notes about this ingredient..."
-                      className="resize-none"
-                      rows={2}
-                    />
+
+                  {/* Reorder Recommendation */}
+                  <div>
+                    <h3 className="font-display text-lg mb-4 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      AI Reorder Recommendation
+                    </h3>
+                    <Card className="wabi-card border-l-4 border-l-primary">
+                      <CardContent className="p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Suggested Quantity</p>
+                            <p className="text-xl font-display font-medium mono-numbers">
+                              {analytics.recommendedReorderQty} {ingredient.unit}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Order By</p>
+                            <p className="text-xl font-display font-medium">
+                              {new Date(analytics.recommendedOrderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        {/* Rationale */}
+                        <div className="p-3 bg-primary/5 rounded-lg">
+                          <p className="text-xs font-medium text-primary mb-1">Why this recommendation?</p>
+                          <p className="text-sm text-muted-foreground">{analytics.reorderRationale}</p>
+                        </div>
+
+                        {/* Impact Note */}
+                        <div className={cn(
+                          'p-3 rounded-lg',
+                          urgency === 'critical' && 'bg-red-50 border border-red-200',
+                          urgency === 'soon' && 'bg-amber-50 border border-amber-200',
+                          urgency === 'monitor' && 'bg-emerald-50 border border-emerald-200'
+                        )}>
+                          <p className={cn(
+                            'text-xs font-medium mb-1',
+                            urgency === 'critical' && 'text-red-700',
+                            urgency === 'soon' && 'text-amber-700',
+                            urgency === 'monitor' && 'text-emerald-700'
+                          )}>
+                            {urgency === 'critical' ? '⚠️ Impact if not reordered' : 
+                             urgency === 'soon' ? '⏰ Action needed' : '✓ Status'}
+                          </p>
+                          <p className={cn(
+                            'text-sm',
+                            urgency === 'critical' && 'text-red-600',
+                            urgency === 'soon' && 'text-amber-600',
+                            urgency === 'monitor' && 'text-emerald-600'
+                          )}>
+                            {analytics.inactionImpact}
+                          </p>
+                        </div>
+
+                        <Button className="w-full gap-2">
+                          <ShoppingCart className="h-4 w-4" />
+                          Add to Order List
+                        </Button>
+                      </CardContent>
+                    </Card>
                   </div>
-                  {editMode && (
-                    <div className="mt-4 flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setEditMode(false)}>Cancel</Button>
-                      <Button onClick={() => {
-                        setEditMode(false);
-                        toast.success('Changes saved successfully');
-                      }}>
-                        Save Changes
+                </div>
+
+                {/* Manual Controls */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display text-lg">Manual Adjustments</h3>
+                    {!editMode ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditMode(true)}
+                        className="gap-2"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                        Edit
                       </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditMode(false);
+                            setEditedStock(String(ingredient.currentStock || 0));
+                            setEditedCost(String(ingredient.costPerUnit));
+                            setEditedNotes(ingredient.notes || '');
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleSave}
+                          disabled={updateMutation.isPending}
+                          className="gap-2"
+                        >
+                          {updateMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          Save
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <Card className="wabi-card">
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground mb-4">
+                        All AI recommendations are advisory. You can manually adjust values below.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="current-stock">Current Stock</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              id="current-stock"
+                              type="number"
+                              step="0.01"
+                              value={editedStock}
+                              onChange={(e) => setEditedStock(e.target.value)}
+                              disabled={!editMode}
+                              className="mono-numbers"
+                            />
+                            <span className="text-sm text-muted-foreground">{ingredient.unit}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cost-per-unit">Cost per Unit</Label>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">$</span>
+                            <Input
+                              id="cost-per-unit"
+                              type="number"
+                              step="0.0001"
+                              value={editedCost}
+                              onChange={(e) => setEditedCost(e.target.value)}
+                              disabled={!editMode}
+                              className="mono-numbers"
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Changes update all menu item costs
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="expiry-date">Expiry Date</Label>
+                          <Input
+                            id="expiry-date"
+                            type="date"
+                            value={editedExpiry}
+                            onChange={(e) => setEditedExpiry(e.target.value)}
+                            disabled={!editMode}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="lead-time">Lead Time</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              id="lead-time"
+                              type="number"
+                              value={ingredient.leadTimeDays || 3}
+                              disabled={!editMode}
+                              className="mono-numbers"
+                            />
+                            <span className="text-sm text-muted-foreground">days</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <Label htmlFor="notes">Notes</Label>
+                        <Textarea
+                          id="notes"
+                          value={editedNotes}
+                          onChange={(e) => setEditedNotes(e.target.value)}
+                          disabled={!editMode}
+                          placeholder="Add notes about this ingredient (supplier info, quality notes, etc.)..."
+                          className="resize-none"
+                          rows={2}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="p-12 text-center text-muted-foreground">
+              No data available for this ingredient
             </div>
-          </div>
+          )}
 
           <DrawerFooter className="border-t">
             <DrawerClose asChild>
@@ -508,9 +733,6 @@ type SortField = 'name' | 'category' | 'daysRemaining' | 'currentStock' | 'value
 type SortDirection = 'asc' | 'desc';
 
 export default function Inventory() {
-  // Use global context for inventory data persistence
-  const { inventoryData, setInventoryData, resetInventoryData, isInventoryImported } = useData();
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -518,10 +740,24 @@ export default function Inventory() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [selectedIngredientId, setSelectedIngredientId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch ingredients from database
+  const { data: ingredients, isLoading: ingredientsLoading, refetch: refetchIngredients } = trpc.ingredients.list.useQuery();
   
-  // Use global inventory data
-  const inventoryItems = inventoryData;
+  // Fetch all analytics
+  const { data: allAnalytics, isLoading: analyticsLoading, refetch: refetchAnalytics } = trpc.ingredients.allAnalytics.useQuery();
+
+  // Bulk upload mutation
+  const bulkUploadMutation = trpc.ingredients.bulkUpload.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Successfully imported ${result.count} ingredients`);
+      refetchIngredients();
+      refetchAnalytics();
+    },
+    onError: (error) => {
+      toast.error(`Failed to import: ${error.message}`);
+    }
+  });
 
   // Handle CSV file upload
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -533,33 +769,43 @@ export default function Inventory() {
       return;
     }
 
-    setIsLoading(true);
     try {
-      const data = await parseIngredientsCSV(file);
-      if (data.length === 0) {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      
+      const items = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const record: Record<string, string> = {};
+        headers.forEach((h, i) => {
+          record[h] = values[i] || '';
+        });
+        
+        return {
+          ingredientId: record['ingredient_id'] || record['ingredientid'] || `ING_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: record['name'] || record['ingredient_name'] || '',
+          category: record['category'] || 'other',
+          unit: record['unit'] || 'unit',
+          costPerUnit: record['cost_per_unit'] || record['costperunit'] || '0',
+          currentStock: record['current_stock'] || record['currentstock'] || '0',
+        };
+      }).filter(item => item.name);
+
+      if (items.length === 0) {
         toast.error('No valid data found in CSV');
         return;
       }
 
-      const convertedItems = data.map(convertToInventoryItem);
-      setInventoryData(convertedItems);
-      toast.success(`Successfully imported ${data.length} ingredients`);
+      bulkUploadMutation.mutate({ items });
     } catch (error) {
       toast.error('Failed to parse CSV file');
       console.error(error);
     } finally {
-      setIsLoading(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
-  }, [setInventoryData]);
-
-  // Reset to default data
-  const handleResetData = useCallback(() => {
-    resetInventoryData();
-    toast.info('Restored default inventory data');
-  }, [resetInventoryData]);
+  }, [bulkUploadMutation]);
 
   // Toggle sort
   const handleSort = (field: SortField) => {
@@ -571,25 +817,74 @@ export default function Inventory() {
     }
   };
 
-  // Get urgency status for an item
-  const getUrgencyStatus = (itemId: string): 'critical' | 'soon' | 'monitor' => {
-    const analytics = getIngredientAnalytics(itemId);
-    return analytics?.urgencyStatus || 'monitor';
-  };
+  // Create analytics map for quick lookup
+  type AnalyticsItem = NonNullable<typeof allAnalytics>[number];
+  const analyticsMap = useMemo(() => {
+    const map = new Map<string, AnalyticsItem>();
+    if (allAnalytics) {
+      for (const a of allAnalytics) {
+        map.set(a.ingredientId, a);
+      }
+    }
+    return map;
+  }, [allAnalytics]);
 
-  // Filter and sort items - unified table sorted by urgency by default
+  // Calculate summary metrics
+  const summaryMetrics = useMemo(() => {
+    if (!ingredients || !allAnalytics) {
+      return { totalValue: 0, lowStockCount: 0, expiringCount: 0, avgDaysRemaining: 0 };
+    }
+
+    const now = new Date();
+    let totalValue = 0;
+    let lowStockCount = 0;
+    let expiringCount = 0;
+    let totalDays = 0;
+    let countWithDays = 0;
+
+    for (const ing of ingredients) {
+      const stock = Number(ing.currentStock) || 0;
+      const cost = Number(ing.costPerUnit) || 0;
+      totalValue += stock * cost;
+
+      const analytics = analyticsMap.get(ing.ingredientId);
+      if (analytics) {
+        if (analytics.daysToStockout <= 7) {
+          lowStockCount++;
+        }
+        totalDays += analytics.daysToStockout;
+        countWithDays++;
+      }
+
+      if (ing.expiryDate && new Date(ing.expiryDate) <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)) {
+        expiringCount++;
+      }
+    }
+
+    return {
+      totalValue,
+      lowStockCount,
+      expiringCount,
+      avgDaysRemaining: countWithDays > 0 ? Math.round(totalDays / countWithDays) : 0,
+    };
+  }, [ingredients, allAnalytics, analyticsMap]);
+
+  // Filter and sort items
   const filteredItems = useMemo(() => {
-    let items = inventoryItems.filter((item) => {
+    if (!ingredients) return [];
+
+    let items = ingredients.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.supplier.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.supplier?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+      const matchesCategory = categoryFilter === 'all' || item.category.toLowerCase() === categoryFilter.toLowerCase();
 
       // Status filter
       if (statusFilter !== 'all') {
-        const analytics = getIngredientAnalytics(item.id);
+        const analytics = analyticsMap.get(item.ingredientId);
         if (!analytics) return false;
-        if (statusFilter !== analytics.urgencyStatus) return false;
+        const urgency = getUrgencyFromDays(analytics.daysToStockout);
+        if (statusFilter !== urgency) return false;
       }
 
       return matchesSearch && matchesCategory;
@@ -597,8 +892,8 @@ export default function Inventory() {
 
     // Sort items
     items.sort((a, b) => {
-      const analyticsA = getIngredientAnalytics(a.id);
-      const analyticsB = getIngredientAnalytics(b.id);
+      const analyticsA = analyticsMap.get(a.ingredientId);
+      const analyticsB = analyticsMap.get(b.ingredientId);
 
       let comparison = 0;
       switch (sortField) {
@@ -609,17 +904,19 @@ export default function Inventory() {
           comparison = a.category.localeCompare(b.category);
           break;
         case 'daysRemaining':
-          comparison = (analyticsA?.projectedDaysRemaining || 999) - (analyticsB?.projectedDaysRemaining || 999);
+          comparison = (analyticsA?.daysToStockout || 999) - (analyticsB?.daysToStockout || 999);
           break;
         case 'currentStock':
-          comparison = a.currentStock - b.currentStock;
+          comparison = Number(a.currentStock) - Number(b.currentStock);
           break;
         case 'value':
-          comparison = (a.currentStock * a.costPerUnit) - (b.currentStock * b.costPerUnit);
+          comparison = (Number(a.currentStock) * Number(a.costPerUnit)) - (Number(b.currentStock) * Number(b.costPerUnit));
           break;
         case 'status':
           const statusOrder = { critical: 0, soon: 1, monitor: 2 };
-          comparison = statusOrder[getUrgencyStatus(a.id)] - statusOrder[getUrgencyStatus(b.id)];
+          const urgencyA = analyticsA ? getUrgencyFromDays(analyticsA.daysToStockout) : 'monitor';
+          const urgencyB = analyticsB ? getUrgencyFromDays(analyticsB.daysToStockout) : 'monitor';
+          comparison = statusOrder[urgencyA] - statusOrder[urgencyB];
           break;
       }
 
@@ -627,19 +924,12 @@ export default function Inventory() {
     });
 
     return items;
-  }, [searchQuery, categoryFilter, statusFilter, inventoryItems, sortField, sortDirection]);
+  }, [searchQuery, categoryFilter, statusFilter, ingredients, sortField, sortDirection, analyticsMap]);
 
   const categories = useMemo(() => {
-    return ['all', ...Array.from(new Set(inventoryItems.map((item) => item.category)))];
-  }, [inventoryItems]);
-
-  // Get selected ingredient details
-  const selectedIngredient = selectedIngredientId
-    ? inventoryItems.find(i => i.id === selectedIngredientId) || null
-    : null;
-  const selectedAnalytics = selectedIngredientId
-    ? getIngredientAnalytics(selectedIngredientId) || null
-    : null;
+    if (!ingredients) return ['all'];
+    return ['all', ...Array.from(new Set(ingredients.map((item) => item.category.toLowerCase())))];
+  }, [ingredients]);
 
   // Sortable column header component
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
@@ -656,6 +946,8 @@ export default function Inventory() {
       </div>
     </th>
   );
+
+  const isLoading = ingredientsLoading || analyticsLoading;
 
   return (
     <DashboardLayout>
@@ -679,23 +971,12 @@ export default function Inventory() {
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
+                disabled={bulkUploadMutation.isPending}
                 className="gap-2"
               >
                 <Upload className="h-4 w-4" />
-                {isLoading ? 'Importing...' : 'Import CSV'}
+                {bulkUploadMutation.isPending ? 'Importing...' : 'Import CSV'}
               </Button>
-              {isInventoryImported && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetData}
-                  className="gap-1 text-muted-foreground"
-                >
-                  <X className="h-4 w-4" />
-                  Reset
-                </Button>
-              )}
             </div>
           </div>
 
@@ -743,30 +1024,15 @@ export default function Inventory() {
           </Card>
         </div>
 
-        {/* Import Status Banner */}
-        {isInventoryImported && (
-          <Card className="wabi-card bg-primary/5 border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <FileSpreadsheet className="h-5 w-5 text-primary" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Using Imported Data</p>
-                  <p className="text-xs text-muted-foreground">
-                    Showing {inventoryItems.length} ingredients from your CSV file
-                  </p>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleResetData}>
-                  Restore Defaults
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Summary Cards */}
-        <InventorySummary items={inventoryItems} />
+        <InventorySummary 
+          totalValue={summaryMetrics.totalValue}
+          lowStockCount={summaryMetrics.lowStockCount}
+          expiringCount={summaryMetrics.expiringCount}
+          avgDaysRemaining={summaryMetrics.avgDaysRemaining}
+        />
 
-        {/* Main Priority Inventory Table - Single Unified View */}
+        {/* Main Priority Inventory Table */}
         <Card className="wabi-card overflow-hidden border-l-4 border-l-primary">
           <CardHeader className="pb-3 border-b">
             <div className="flex items-center justify-between">
@@ -776,143 +1042,136 @@ export default function Inventory() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="font-mono bg-red-50 text-red-700 border-red-200">
-                  {filteredItems.filter(i => getUrgencyStatus(i.id) === 'critical').length} Critical
+                  {filteredItems.filter(i => {
+                    const a = analyticsMap.get(i.ingredientId);
+                    return a && getUrgencyFromDays(a.daysToStockout) === 'critical';
+                  }).length} Critical
                 </Badge>
                 <Badge variant="outline" className="font-mono bg-amber-50 text-amber-700 border-amber-200">
-                  {filteredItems.filter(i => getUrgencyStatus(i.id) === 'soon').length} Soon
+                  {filteredItems.filter(i => {
+                    const a = analyticsMap.get(i.ingredientId);
+                    return a && getUrgencyFromDays(a.daysToStockout) === 'soon';
+                  }).length} Soon
                 </Badge>
               </div>
             </div>
             <CardDescription>Sorted by urgency • Click any row for detailed analytics and manual adjustments</CardDescription>
           </CardHeader>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-muted/30 border-b border-border/50">
-                <tr>
-                  <SortableHeader field="name">Ingredient</SortableHeader>
-                  <SortableHeader field="category">Category</SortableHeader>
-                  <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Unit</th>
-                  <SortableHeader field="currentStock">Current Stock</SortableHeader>
-                  <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Daily Usage</th>
-                  <SortableHeader field="daysRemaining">Days Left</SortableHeader>
-                  <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Reorder Qty</th>
-                  <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Order By</th>
-                  <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Impacted Items</th>
-                  <SortableHeader field="status">Status</SortableHeader>
-                  <th className="py-3 px-4"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.map((item) => {
-                  const analytics = getIngredientAnalytics(item.id);
-                  const urgency = getUrgencyStatus(item.id);
-                  const isLow = item.currentStock <= item.minStock;
-                  
-                  return (
-                    <tr
-                      key={item.id}
-                      className={cn(
-                        'border-b border-border/30 hover:bg-accent/20 transition-colors cursor-pointer',
-                        urgency === 'critical' && 'bg-red-50/50',
-                        urgency === 'soon' && 'bg-amber-50/30',
-                        searchQuery && item.name.toLowerCase().includes(searchQuery.toLowerCase()) && 'ring-2 ring-primary/20 ring-inset'
-                      )}
-                      onClick={() => setSelectedIngredientId(item.id)}
-                    >
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded bg-primary/10 text-primary">
-                            {categoryIcons[item.category]}
+            {isLoading ? (
+              <div className="flex items-center justify-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-muted/30 border-b border-border/50">
+                  <tr>
+                    <SortableHeader field="name">Ingredient</SortableHeader>
+                    <SortableHeader field="category">Category</SortableHeader>
+                    <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Unit</th>
+                    <SortableHeader field="currentStock">Current Stock</SortableHeader>
+                    <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Daily Usage</th>
+                    <SortableHeader field="daysRemaining">Days Left</SortableHeader>
+                    <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Reorder Qty</th>
+                    <th className="text-left py-3 px-4 font-medium text-xs uppercase tracking-wider text-muted-foreground">Order By</th>
+                    <SortableHeader field="status">Status</SortableHeader>
+                    <th className="py-3 px-4"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredItems.map((item) => {
+                    const analytics = analyticsMap.get(item.ingredientId);
+                    const urgency = analytics ? getUrgencyFromDays(analytics.daysToStockout) : 'monitor';
+                    
+                    return (
+                      <tr
+                        key={item.ingredientId}
+                        className={cn(
+                          'border-b border-border/30 hover:bg-accent/20 transition-colors cursor-pointer',
+                          urgency === 'critical' && 'bg-red-50/50',
+                          urgency === 'soon' && 'bg-amber-50/30',
+                        )}
+                        onClick={() => setSelectedIngredientId(item.ingredientId)}
+                      >
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded bg-primary/10 text-primary">
+                              {categoryIcons[item.category.toLowerCase()] || <Box className="h-4 w-4" />}
+                            </div>
+                            <span className="font-medium text-sm">{item.name}</span>
                           </div>
-                          <span className="font-medium text-sm">{item.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge variant="outline" className="capitalize text-xs">{item.category}</Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm">{item.unit}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={cn(
-                          'mono-numbers text-sm font-medium',
-                          isLow && 'text-amber-600'
-                        )}>
-                          {item.currentStock}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="mono-numbers text-sm text-muted-foreground">
-                          {analytics?.averageDailyUsage.toFixed(1) || '-'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5">
-                          {analytics && analytics.projectedDaysRemaining <= 3 && (
-                            <TrendingDown className="h-3.5 w-3.5 text-red-500" />
-                          )}
-                          <span className={cn(
-                            'mono-numbers text-sm font-medium',
-                            analytics?.projectedDaysRemaining && analytics.projectedDaysRemaining <= 3 && 'text-red-600',
-                            analytics?.projectedDaysRemaining && analytics.projectedDaysRemaining <= 7 && analytics.projectedDaysRemaining > 3 && 'text-amber-600'
-                          )}>
-                            {analytics?.projectedDaysRemaining || '-'} days
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge variant="outline" className="capitalize text-xs">{item.category}</Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-sm">{item.unit}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="mono-numbers text-sm font-medium">
+                            {Number(item.currentStock).toFixed(1)}
                           </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="mono-numbers text-sm font-medium text-primary">
-                          {analytics?.recommendedReorderQty || '-'} {item.unit}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm">
-                          {analytics?.recommendedOrderDate 
-                            ? new Date(analytics.recommendedOrderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                            : '-'
-                          }
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-wrap gap-1 max-w-[180px]">
-                          {analytics?.usageByMenuItem.slice(0, 2).map((menuItem, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs py-0">
-                              {menuItem.menuItemName.split(' ').slice(0, 2).join(' ')}
-                            </Badge>
-                          ))}
-                          {analytics && analytics.usageByMenuItem.length > 2 && (
-                            <Badge variant="outline" className="text-xs py-0">
-                              +{analytics.usageByMenuItem.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge className={cn('text-xs', urgencyConfig[urgency].badge)}>
-                          {urgencyConfig[urgency].label}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="mono-numbers text-sm text-muted-foreground">
+                            {analytics?.averageDailyUsage.toFixed(1) || '-'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1.5">
+                            {analytics && analytics.daysToStockout <= 3 && (
+                              <TrendingDown className="h-3.5 w-3.5 text-red-500" />
+                            )}
+                            <span className={cn(
+                              'mono-numbers text-sm font-medium',
+                              analytics?.daysToStockout && analytics.daysToStockout <= 3 && 'text-red-600',
+                              analytics?.daysToStockout && analytics.daysToStockout <= 7 && analytics.daysToStockout > 3 && 'text-amber-600'
+                            )}>
+                              {analytics ? (analytics.daysToStockout > 100 ? '100+' : analytics.daysToStockout) : '-'} days
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="mono-numbers text-sm font-medium text-primary">
+                            {analytics?.recommendedReorderQty || '-'} {item.unit}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-sm">
+                            {analytics?.recommendedOrderDate 
+                              ? new Date(analytics.recommendedOrderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                              : '-'
+                            }
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge className={cn('text-xs', urgencyConfig[urgency].badge)}>
+                            {urgencyConfig[urgency].label}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         </Card>
 
-        {filteredItems.length === 0 && (
+        {filteredItems.length === 0 && !isLoading && (
           <Card className="wabi-card">
             <CardContent className="p-8 text-center">
               <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No items found matching your criteria</p>
+              <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or import ingredients via CSV</p>
             </CardContent>
           </Card>
         )}
 
-        {/* CSV Format Help - Moved to Bottom as Helper Tip */}
+        {/* CSV Format Help */}
         <Card className="wabi-card bg-muted/20 border-dashed">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
@@ -920,11 +1179,14 @@ export default function Inventory() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">CSV Import Format</p>
                 <p className="text-xs text-muted-foreground">
-                  To import inventory data, upload a CSV file named <code className="bg-muted px-1.5 py-0.5 rounded">ingredients.csv</code> with the following headers:
+                  To import inventory data, upload a CSV file with the following headers:
                 </p>
                 <code className="block mt-2 text-xs bg-muted px-2 py-1.5 rounded text-muted-foreground">
                   ingredient_id, name, category, unit, cost_per_unit, current_stock
                 </code>
+                <p className="text-xs text-muted-foreground mt-2">
+                  <strong>Note:</strong> Ingredients serve as the single source of truth. Changes to cost per unit will automatically update all menu item costs and profitability calculations.
+                </p>
               </div>
             </div>
           </CardContent>
@@ -933,10 +1195,13 @@ export default function Inventory() {
 
       {/* Ingredient Detail Drawer */}
       <IngredientDetailDrawer
-        ingredient={selectedIngredient}
-        analytics={selectedAnalytics}
+        ingredientId={selectedIngredientId}
         isOpen={!!selectedIngredientId}
         onClose={() => setSelectedIngredientId(null)}
+        onUpdate={() => {
+          refetchIngredients();
+          refetchAnalytics();
+        }}
       />
     </DashboardLayout>
   );

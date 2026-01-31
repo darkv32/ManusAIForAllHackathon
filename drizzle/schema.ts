@@ -36,6 +36,12 @@ export const ingredients = mysqlTable("ingredients", {
   unit: varchar("unit", { length: 32 }).notNull(),
   costPerUnit: decimal("costPerUnit", { precision: 10, scale: 6 }).notNull(),
   currentStock: decimal("currentStock", { precision: 12, scale: 2 }).default("0"),
+  minStock: decimal("minStock", { precision: 12, scale: 2 }).default("0"),
+  reorderPoint: decimal("reorderPoint", { precision: 12, scale: 2 }).default("0"),
+  leadTimeDays: int("leadTimeDays").default(3),
+  expiryDate: timestamp("expiryDate"),
+  notes: text("notes"),
+  supplier: varchar("supplier", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
