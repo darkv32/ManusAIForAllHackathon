@@ -1,9 +1,10 @@
 /**
  * Dashboard Layout Component
- * Design: Japanese Wabi-Sabi Minimalism
- * - Left-weighted navigation mimicking Japanese scroll reading
- * - Generous whitespace and asymmetric balance
- * - Soft shadows and paper-like card aesthetics
+ * Design: Premium Matsu Matcha Brand
+ * - Deep forest green color palette inspired by matsumatcha.com
+ * - Elegant Playfair Display typography for headings
+ * - Refined shadows and subtle borders
+ * - Warm cream backgrounds with premium feel
  */
 
 import { cn } from '@/lib/utils';
@@ -25,7 +26,6 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { Separator } from './ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from './ui/sheet';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
@@ -37,18 +37,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { title: 'Overview', href: '/', icon: <Home className="h-5 w-5" /> },
-  { title: 'Inventory', href: '/inventory', icon: <Box className="h-5 w-5" /> },
-  { title: 'Sales', href: '/sales', icon: <DollarSign className="h-5 w-5" /> },
-  { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-5 w-5" /> },
-  { title: 'Order Command', href: '/procurement', icon: <ClipboardList className="h-5 w-5" />, badge: '5' },
-  { title: 'Menu Analytics', href: '/menu', icon: <BarChart3 className="h-5 w-5" /> },
-  { title: 'Strategy', href: '/strategy', icon: <Lightbulb className="h-5 w-5" />, badge: '4' },
+  { title: 'Overview', href: '/', icon: <Home className="h-[18px] w-[18px]" /> },
+  { title: 'Inventory', href: '/inventory', icon: <Box className="h-[18px] w-[18px]" /> },
+  { title: 'Sales', href: '/sales', icon: <DollarSign className="h-[18px] w-[18px]" /> },
+  { title: 'Profitability', href: '/profitability', icon: <TrendingUp className="h-[18px] w-[18px]" /> },
+  { title: 'Order Command', href: '/procurement', icon: <ClipboardList className="h-[18px] w-[18px]" />, badge: '5' },
+  { title: 'Menu Analytics', href: '/menu', icon: <BarChart3 className="h-[18px] w-[18px]" /> },
+  { title: 'Strategy', href: '/strategy', icon: <Lightbulb className="h-[18px] w-[18px]" />, badge: '4' },
 ];
 
 const bottomNavItems: NavItem[] = [
-  { title: 'Stock Input', href: '/stock-input', icon: <Package className="h-5 w-5" /> },
-  { title: 'Settings', href: '/settings', icon: <Settings className="h-5 w-5" /> },
+  { title: 'Stock Input', href: '/stock-input', icon: <Package className="h-[18px] w-[18px]" /> },
+  { title: 'Settings', href: '/settings', icon: <Settings className="h-[18px] w-[18px]" /> },
 ];
 
 interface DashboardLayoutProps {
@@ -63,18 +63,28 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
     <Link href={item.href}>
       <div
         className={cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300',
-          'hover:bg-accent/50',
-          isActive && 'bg-accent text-accent-foreground font-medium',
-          collapsed && 'justify-center px-2'
+          'group flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-200',
+          'hover:bg-primary/5',
+          isActive && 'bg-primary/8 border-l-2 border-primary -ml-[2px] pl-[14px]',
+          collapsed && 'justify-center px-2 border-l-0 ml-0 pl-2'
         )}
       >
-        <span className={cn(isActive && 'text-primary')}>{item.icon}</span>
+        <span className={cn(
+          'transition-colors duration-200',
+          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+        )}>
+          {item.icon}
+        </span>
         {!collapsed && (
           <>
-            <span className="flex-1 text-sm">{item.title}</span>
+            <span className={cn(
+              'flex-1 text-[13px] tracking-wide transition-colors duration-200',
+              isActive ? 'text-primary font-medium' : 'text-foreground/80 group-hover:text-foreground'
+            )}>
+              {item.title}
+            </span>
             {item.badge && (
-              <span className="bg-primary/10 text-primary text-xs font-medium px-2 py-0.5 rounded-full">
+              <span className="badge-premium">
                 {item.badge}
               </span>
             )}
@@ -89,7 +99,8 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border z-40',
+        'fixed left-0 top-0 h-screen bg-sidebar z-40',
+        'border-r border-primary/8',
         'transition-all duration-300 ease-out',
         collapsed ? 'w-[72px]' : 'w-[260px]'
       )}
@@ -97,10 +108,10 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
       <div className="flex flex-col h-full">
         {/* Logo */}
         <div className={cn(
-          'flex items-center h-16 px-4 border-b border-sidebar-border',
-          collapsed ? 'justify-center' : 'gap-3'
+          'flex items-center h-[72px] px-5 border-b border-primary/8',
+          collapsed ? 'justify-center px-3' : 'gap-4'
         )}>
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center overflow-hidden">
+          <div className="w-10 h-10 rounded-md overflow-hidden shadow-sm ring-1 ring-primary/10">
             <img 
               src="/images/matcha-latte-hero.jpg" 
               alt="Matsu Matcha" 
@@ -109,23 +120,27 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-serif font-semibold text-foreground">Matsu Matcha</span>
-              <span className="text-xs text-muted-foreground">Guoco Tower</span>
+              <span className="font-display text-lg tracking-tight text-foreground">
+                Matsu Matcha
+              </span>
+              <span className="text-[11px] text-muted-foreground tracking-wide uppercase">
+                Guoco Tower
+              </span>
             </div>
           )}
         </div>
 
         {/* Navigation */}
-        <ScrollArea className="flex-1 py-4">
-          <nav className="px-3 space-y-1">
+        <ScrollArea className="flex-1 py-6">
+          <nav className="px-4 space-y-1">
             {navItems.map((item) => (
               <NavLink key={item.href} item={item} collapsed={collapsed} />
             ))}
           </nav>
 
-          <Separator className="my-4 mx-3" />
+          <div className="ink-divider my-6 mx-4" />
 
-          <nav className="px-3 space-y-1">
+          <nav className="px-4 space-y-1">
             {bottomNavItems.map((item) => (
               <NavLink key={item.href} item={item} collapsed={collapsed} />
             ))}
@@ -133,19 +148,22 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
         </ScrollArea>
 
         {/* Collapse Toggle */}
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-4 border-t border-primary/8">
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className={cn('w-full', collapsed && 'px-2')}
+            className={cn(
+              'w-full text-muted-foreground hover:text-foreground hover:bg-primary/5',
+              collapsed && 'px-2'
+            )}
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4" />
             ) : (
               <>
                 <ChevronLeft className="h-4 w-4 mr-2" />
-                <span>Collapse</span>
+                <span className="text-[13px]">Collapse</span>
               </>
             )}
           </Button>
@@ -159,19 +177,19 @@ function MobileNav() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden">
+        <Button variant="ghost" size="icon" className="lg:hidden hover:bg-primary/5">
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[280px] p-0">
+      <SheetContent side="left" className="w-[280px] p-0 border-r-primary/10">
         <VisuallyHidden>
           <SheetTitle>Navigation Menu</SheetTitle>
           <SheetDescription>Main navigation for Matsu Matcha Dashboard</SheetDescription>
         </VisuallyHidden>
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-sidebar">
           {/* Logo */}
-          <div className="flex items-center h-16 px-4 border-b gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center overflow-hidden">
+          <div className="flex items-center h-[72px] px-5 border-b border-primary/8 gap-4">
+            <div className="w-10 h-10 rounded-md overflow-hidden shadow-sm ring-1 ring-primary/10">
               <img 
                 src="/images/matcha-latte-hero.jpg" 
                 alt="Matsu Matcha" 
@@ -179,22 +197,24 @@ function MobileNav() {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif font-semibold">Matsu Matcha</span>
-              <span className="text-xs text-muted-foreground">Guoco Tower</span>
+              <span className="font-display text-lg tracking-tight">Matsu Matcha</span>
+              <span className="text-[11px] text-muted-foreground tracking-wide uppercase">
+                Guoco Tower
+              </span>
             </div>
           </div>
 
           {/* Navigation */}
-          <ScrollArea className="flex-1 py-4">
-            <nav className="px-3 space-y-1">
+          <ScrollArea className="flex-1 py-6">
+            <nav className="px-4 space-y-1">
               {navItems.map((item) => (
                 <NavLink key={item.href} item={item} collapsed={false} />
               ))}
             </nav>
 
-            <Separator className="my-4 mx-3" />
+            <div className="ink-divider my-6 mx-4" />
 
-            <nav className="px-3 space-y-1">
+            <nav className="px-4 space-y-1">
               {bottomNavItems.map((item) => (
                 <NavLink key={item.href} item={item} collapsed={false} />
               ))}
@@ -224,11 +244,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
       >
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-sm border-b flex items-center px-4 lg:px-6">
+        <header className="sticky top-0 z-30 h-16 bg-background/95 backdrop-blur-md border-b border-primary/8 flex items-center px-4 lg:px-8">
           <MobileNav />
           <div className="flex-1" />
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground hidden sm:block">
+            <span className="text-[13px] text-muted-foreground hidden sm:block tracking-wide">
               {new Date().toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
@@ -240,7 +260,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="p-4 lg:p-6">
+        <main className="p-4 lg:p-8">
           {children}
         </main>
       </div>

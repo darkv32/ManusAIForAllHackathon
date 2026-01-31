@@ -1,9 +1,10 @@
 /**
  * Overview Dashboard Page
- * Design: Japanese Wabi-Sabi Minimalism
- * - Asymmetric card layouts with varying heights
- * - Generous whitespace creating breathing room
- * - Soft shadows and paper-like aesthetics
+ * Design: Premium Matsu Matcha Brand
+ * - Deep forest green color palette
+ * - Elegant Playfair Display typography
+ * - Refined shadows and subtle borders
+ * - Warm cream backgrounds
  */
 
 import DashboardLayout from '@/components/DashboardLayout';
@@ -67,7 +68,7 @@ function KPICard({
         <div className="flex items-start justify-between">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-serif font-semibold mono-numbers">{value}</p>
+            <p className="text-2xl font-display font-medium mono-numbers tracking-tight">{value}</p>
             {change && (
               <div className="flex items-center gap-1.5">
                 {changeType === 'positive' && <ArrowUp className="h-3.5 w-3.5 text-green-600" />}
@@ -102,7 +103,7 @@ function ProfitGoalCard() {
     <Card className="wabi-card animate-fade-up">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-serif">Monthly Profit Goal</CardTitle>
+          <CardTitle className="text-lg font-display">Monthly Profit Goal</CardTitle>
           <Target className="h-5 w-5 text-primary" />
         </div>
         <CardDescription>January 2026 Progress</CardDescription>
@@ -110,7 +111,7 @@ function ProfitGoalCard() {
       <CardContent className="space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-3xl font-serif font-semibold mono-numbers">
+            <p className="text-3xl font-display font-medium mono-numbers tracking-tight">
               ${businessMetrics.currentMonthProfit.toLocaleString()}
             </p>
             <p className="text-sm text-muted-foreground">
@@ -134,7 +135,7 @@ function RevenueChart() {
   return (
     <Card className="wabi-card animate-fade-up">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-serif">Daily Revenue</CardTitle>
+        <CardTitle className="text-lg font-display">Daily Revenue</CardTitle>
         <CardDescription>Last 7 days performance</CardDescription>
       </CardHeader>
       <CardContent>
@@ -143,8 +144,8 @@ function RevenueChart() {
             <AreaChart data={dailySalesData}>
               <defs>
                 <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="oklch(0.42 0.08 145)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="oklch(0.42 0.08 145)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="oklch(0.35 0.12 145)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="oklch(0.35 0.12 145)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
@@ -177,7 +178,7 @@ function RevenueChart() {
               <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="oklch(0.42 0.08 145)"
+                stroke="oklch(0.35 0.12 145)"
                 strokeWidth={2}
                 fill="url(#revenueGradient)"
               />
@@ -192,16 +193,16 @@ function RevenueChart() {
 // Category Breakdown Chart
 function CategoryChart() {
   const COLORS = [
-    'oklch(0.42 0.08 145)',
-    'oklch(0.55 0.06 145)',
-    'oklch(0.72 0.08 55)',
-    'oklch(0.78 0.04 145)'
+    'oklch(0.35 0.12 145)',
+    'oklch(0.48 0.10 145)',
+    'oklch(0.60 0.08 145)',
+    'oklch(0.72 0.06 145)'
   ];
 
   return (
     <Card className="wabi-card animate-fade-up">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-serif">Sales by Category</CardTitle>
+        <CardTitle className="text-lg font-display">Sales by Category</CardTitle>
         <CardDescription>Revenue distribution</CardDescription>
       </CardHeader>
       <CardContent>
@@ -258,7 +259,7 @@ function TopPerformers() {
   return (
     <Card className="wabi-card animate-fade-up">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-serif">Top Performers</CardTitle>
+        <CardTitle className="text-lg font-display">Top Performers</CardTitle>
         <CardDescription>This week's best sellers</CardDescription>
       </CardHeader>
       <CardContent>
@@ -282,7 +283,7 @@ function TopPerformers() {
                 }}
                 formatter={(value: number) => [value, 'Orders']}
               />
-              <Bar dataKey="weeklyVolume" fill="oklch(0.42 0.08 145)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="weeklyVolume" fill="oklch(0.35 0.12 145)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -301,7 +302,7 @@ function UrgentAlerts() {
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-amber-500" />
-          <CardTitle className="text-lg font-serif">Attention Required</CardTitle>
+          <CardTitle className="text-lg font-display">Attention Required</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -351,7 +352,7 @@ export default function Home() {
       <div className="space-y-6">
         {/* Page Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl font-serif font-semibold">Dashboard Overview</h1>
+          <h1 className="text-3xl font-display font-medium tracking-tight">Dashboard Overview</h1>
           <p className="text-muted-foreground">
             Welcome back. Here's what's happening at Matsu Matcha today.
           </p>
