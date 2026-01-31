@@ -14,8 +14,8 @@ import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
 import StockInput from "./pages/StockInput";
 import Strategy from "./pages/Strategy";
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/" component={Home} />

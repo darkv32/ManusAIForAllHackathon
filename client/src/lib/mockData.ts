@@ -718,3 +718,403 @@ export function getPriorityIngredients(): (IngredientAnalytics & { ingredient: I
       return a.projectedDaysRemaining - b.projectedDaysRemaining;
     });
 }
+
+
+// ============================================
+// MENU ENGINEERING & PROFITABILITY ANALYTICS
+// ============================================
+
+export interface MenuEngineeringItem {
+  menuItemId: string;
+  name: string;
+  category: 'signature' | 'premium' | 'regular' | 'seasonal';
+  price: number;
+  cost: number;
+  margin: number;
+  marginPercentage: number;
+  weeklyVolume: number;
+  monthlyVolume: number;
+  weeklyProfit: number;
+  monthlyProfit: number;
+  classification: 'star' | 'plowhorse' | 'puzzle' | 'dog';
+  trending: 'up' | 'down' | 'stable';
+}
+
+export interface IngredientCostTrend {
+  ingredientId: string;
+  name: string;
+  currentCost: number;
+  unit: string;
+  costHistory: { month: string; cost: number }[];
+  trendDirection: 'rising' | 'falling' | 'stable';
+  percentageChange: number;
+  alertType: 'red' | 'green' | 'neutral';
+}
+
+export interface MarginSensitivity {
+  ingredientId: string;
+  ingredientName: string;
+  currentCost: number;
+  impactedDrinks: {
+    drinkId: string;
+    drinkName: string;
+    currentMargin: number;
+    marginAfter10PercentIncrease: number;
+    profitImpactPerUnit: number;
+    monthlyProfitImpact: number;
+  }[];
+  totalMonthlyImpact: number;
+}
+
+// Calculate menu engineering classification
+function classifyMenuItem(item: MenuItem, avgMargin: number, avgVolume: number): MenuEngineeringItem {
+  const isHighMargin = item.margin >= avgMargin;
+  const isHighVolume = item.weeklyVolume >= avgVolume;
+  
+  let classification: 'star' | 'plowhorse' | 'puzzle' | 'dog';
+  if (isHighMargin && isHighVolume) classification = 'star';
+  else if (!isHighMargin && isHighVolume) classification = 'plowhorse';
+  else if (isHighMargin && !isHighVolume) classification = 'puzzle';
+  else classification = 'dog';
+  
+  const weeklyProfit = (item.price - item.cost) * item.weeklyVolume;
+  const monthlyProfit = (item.price - item.cost) * item.monthlyVolume;
+  
+  return {
+    menuItemId: item.id,
+    name: item.name,
+    category: item.category,
+    price: item.price,
+    cost: item.cost,
+    margin: item.price - item.cost,
+    marginPercentage: item.margin,
+    weeklyVolume: item.weeklyVolume,
+    monthlyVolume: item.monthlyVolume,
+    weeklyProfit,
+    monthlyProfit,
+    classification,
+    trending: item.trending
+  };
+}
+
+// Generate menu engineering data
+const avgMargin = menuItems.reduce((sum, item) => sum + item.margin, 0) / menuItems.length;
+const avgVolume = menuItems.reduce((sum, item) => sum + item.weeklyVolume, 0) / menuItems.length;
+
+export const menuEngineeringData: MenuEngineeringItem[] = menuItems.map(item => 
+  classifyMenuItem(item, avgMargin, avgVolume)
+);
+
+// Get items by classification
+export function getMenuItemsByClassification(classification: 'star' | 'plowhorse' | 'puzzle' | 'dog'): MenuEngineeringItem[] {
+  return menuEngineeringData.filter(item => item.classification === classification);
+}
+
+// Ingredient cost trends (last 3 months)
+export const ingredientCostTrends: IngredientCostTrend[] = [
+  {
+    ingredientId: 'matcha-ceremonial',
+    name: 'Ceremonial Grade Matcha',
+    currentCost: 180,
+    unit: 'kg',
+    costHistory: [
+      { month: 'Nov 2025', cost: 165 },
+      { month: 'Dec 2025', cost: 172 },
+      { month: 'Jan 2026', cost: 180 }
+    ],
+    trendDirection: 'rising',
+    percentageChange: 9.1,
+    alertType: 'red'
+  },
+  {
+    ingredientId: 'matcha-culinary',
+    name: 'Culinary Grade Matcha',
+    currentCost: 85,
+    unit: 'kg',
+    costHistory: [
+      { month: 'Nov 2025', cost: 82 },
+      { month: 'Dec 2025', cost: 84 },
+      { month: 'Jan 2026', cost: 85 }
+    ],
+    trendDirection: 'stable',
+    percentageChange: 3.7,
+    alertType: 'neutral'
+  },
+  {
+    ingredientId: 'meiji-milk',
+    name: 'Meiji Fresh Milk',
+    currentCost: 3.5,
+    unit: 'L',
+    costHistory: [
+      { month: 'Nov 2025', cost: 3.8 },
+      { month: 'Dec 2025', cost: 3.6 },
+      { month: 'Jan 2026', cost: 3.5 }
+    ],
+    trendDirection: 'falling',
+    percentageChange: -7.9,
+    alertType: 'green'
+  },
+  {
+    ingredientId: 'oatly',
+    name: 'Oatly Barista Edition',
+    currentCost: 5.2,
+    unit: 'L',
+    costHistory: [
+      { month: 'Nov 2025', cost: 4.8 },
+      { month: 'Dec 2025', cost: 5.0 },
+      { month: 'Jan 2026', cost: 5.2 }
+    ],
+    trendDirection: 'rising',
+    percentageChange: 8.3,
+    alertType: 'red'
+  },
+  {
+    ingredientId: 'strawberries',
+    name: 'Fresh Strawberries',
+    currentCost: 18,
+    unit: 'kg',
+    costHistory: [
+      { month: 'Nov 2025', cost: 22 },
+      { month: 'Dec 2025', cost: 20 },
+      { month: 'Jan 2026', cost: 18 }
+    ],
+    trendDirection: 'falling',
+    percentageChange: -18.2,
+    alertType: 'green'
+  },
+  {
+    ingredientId: 'honey',
+    name: 'Raw Wildflower Honey',
+    currentCost: 28,
+    unit: 'kg',
+    costHistory: [
+      { month: 'Nov 2025', cost: 26 },
+      { month: 'Dec 2025', cost: 27 },
+      { month: 'Jan 2026', cost: 28 }
+    ],
+    trendDirection: 'rising',
+    percentageChange: 7.7,
+    alertType: 'red'
+  }
+];
+
+// Margin sensitivity analysis
+export const marginSensitivityData: MarginSensitivity[] = [
+  {
+    ingredientId: 'matcha-ceremonial',
+    ingredientName: 'Ceremonial Grade Matcha',
+    currentCost: 180,
+    impactedDrinks: [
+      {
+        drinkId: 'signature-matcha-latte',
+        drinkName: 'Signature Matcha Latte',
+        currentMargin: 66.5,
+        marginAfter10PercentIncrease: 65.9,
+        profitImpactPerUnit: -0.054,
+        monthlyProfitImpact: -52.92
+      },
+      {
+        drinkId: 'premium-ceremonial',
+        drinkName: 'Premium Ceremonial Bowl',
+        currentMargin: 73.3,
+        marginAfter10PercentIncrease: 72.7,
+        profitImpactPerUnit: -0.072,
+        monthlyProfitImpact: -24.48
+      },
+      {
+        drinkId: 'honey-matcha',
+        drinkName: 'Honey Foam Matcha',
+        currentMargin: 65.5,
+        marginAfter10PercentIncrease: 64.9,
+        profitImpactPerUnit: -0.054,
+        monthlyProfitImpact: -28.94
+      }
+    ],
+    totalMonthlyImpact: -106.34
+  },
+  {
+    ingredientId: 'meiji-milk',
+    ingredientName: 'Meiji Fresh Milk',
+    currentCost: 3.5,
+    impactedDrinks: [
+      {
+        drinkId: 'signature-matcha-latte',
+        drinkName: 'Signature Matcha Latte',
+        currentMargin: 66.5,
+        marginAfter10PercentIncrease: 65.5,
+        profitImpactPerUnit: -0.0875,
+        monthlyProfitImpact: -85.75
+      },
+      {
+        drinkId: 'houjicha-latte',
+        drinkName: 'Houjicha Latte',
+        currentMargin: 69.3,
+        marginAfter10PercentIncrease: 68.0,
+        profitImpactPerUnit: -0.0875,
+        monthlyProfitImpact: -54.60
+      },
+      {
+        drinkId: 'iced-matcha',
+        drinkName: 'Iced Matcha',
+        currentMargin: 72.3,
+        marginAfter10PercentIncrease: 71.5,
+        profitImpactPerUnit: -0.0525,
+        monthlyProfitImpact: -65.52
+      }
+    ],
+    totalMonthlyImpact: -205.87
+  },
+  {
+    ingredientId: 'oatly',
+    ingredientName: 'Oatly Barista Edition',
+    currentCost: 5.2,
+    impactedDrinks: [
+      {
+        drinkId: 'oat-matcha',
+        drinkName: 'Oat Matcha Latte',
+        currentMargin: 65.6,
+        marginAfter10PercentIncrease: 64.2,
+        profitImpactPerUnit: -0.13,
+        monthlyProfitImpact: -102.96
+      }
+    ],
+    totalMonthlyImpact: -102.96
+  }
+];
+
+// Profitability KPIs
+export interface ProfitabilityKPIs {
+  actualMargin: number;
+  targetMargin: number;
+  topProfitContributor: { name: string; monthlyProfit: number };
+  oatmilkLiftProfit: number;
+  totalMonthlyRevenue: number;
+  totalMonthlyCost: number;
+  totalMonthlyProfit: number;
+  profitGapToGoal: number;
+}
+
+// Calculate oatmilk lift (surcharge profit from milk swaps)
+const oatmilkSurcharge = 1.0; // $1 extra for oat milk
+const oatmilkOrders = menuItems.find(m => m.id === 'oat-matcha')?.monthlyVolume || 0;
+const oatmilkLiftProfit = oatmilkSurcharge * oatmilkOrders * 0.85; // 85% margin on surcharge
+
+// Find top profit contributor
+const topContributor = menuEngineeringData.reduce((max, item) => 
+  item.monthlyProfit > max.monthlyProfit ? item : max
+);
+
+export const profitabilityKPIs: ProfitabilityKPIs = {
+  actualMargin: 67.2,
+  targetMargin: 70.0,
+  topProfitContributor: { name: topContributor.name, monthlyProfit: topContributor.monthlyProfit },
+  oatmilkLiftProfit: oatmilkLiftProfit,
+  totalMonthlyRevenue: menuItems.reduce((sum, item) => sum + (item.price * item.monthlyVolume), 0),
+  totalMonthlyCost: menuItems.reduce((sum, item) => sum + (item.cost * item.monthlyVolume), 0),
+  totalMonthlyProfit: businessMetrics.currentMonthProfit,
+  profitGapToGoal: businessMetrics.monthlyProfitGoal - businessMetrics.currentMonthProfit
+};
+
+// Gap analysis data
+export interface GapAnalysis {
+  currentProfit: number;
+  targetProfit: number;
+  gap: number;
+  starItemsNeeded: { itemName: string; additionalUnits: number; additionalRevenue: number }[];
+  requiredIngredients: { ingredientId: string; ingredientName: string; additionalQty: number; unit: string; cost: number }[];
+}
+
+export function calculateGapAnalysis(targetProfit: number): GapAnalysis {
+  const currentProfit = businessMetrics.currentMonthProfit;
+  const gap = targetProfit - currentProfit;
+  
+  if (gap <= 0) {
+    return {
+      currentProfit,
+      targetProfit,
+      gap: 0,
+      starItemsNeeded: [],
+      requiredIngredients: []
+    };
+  }
+  
+  // Get star items sorted by profit per unit
+  const stars = menuEngineeringData
+    .filter(item => item.classification === 'star')
+    .sort((a, b) => b.margin - a.margin);
+  
+  let remainingGap = gap;
+  const starItemsNeeded: { itemName: string; additionalUnits: number; additionalRevenue: number }[] = [];
+  const ingredientRequirements: Map<string, { name: string; qty: number; unit: string; cost: number }> = new Map();
+  
+  for (const star of stars) {
+    if (remainingGap <= 0) break;
+    
+    const unitsNeeded = Math.ceil(remainingGap / star.margin);
+    const actualUnits = Math.min(unitsNeeded, Math.floor(star.monthlyVolume * 0.3)); // Max 30% increase
+    const profitFromUnits = actualUnits * star.margin;
+    
+    if (actualUnits > 0) {
+      starItemsNeeded.push({
+        itemName: star.name,
+        additionalUnits: actualUnits,
+        additionalRevenue: actualUnits * star.price
+      });
+      
+      // Calculate ingredient requirements
+      const menuItem = menuItems.find(m => m.id === star.menuItemId);
+      if (menuItem) {
+        for (const ing of menuItem.ingredients) {
+          const ingredient = inventoryItems.find(i => i.id === ing.itemId);
+          if (ingredient) {
+            const existing = ingredientRequirements.get(ing.itemId) || { 
+              name: ingredient.name, 
+              qty: 0, 
+              unit: ingredient.unit,
+              cost: 0 
+            };
+            existing.qty += ing.quantity * actualUnits;
+            existing.cost += ing.quantity * actualUnits * ingredient.costPerUnit;
+            ingredientRequirements.set(ing.itemId, existing);
+          }
+        }
+      }
+      
+      remainingGap -= profitFromUnits;
+    }
+  }
+  
+  return {
+    currentProfit,
+    targetProfit,
+    gap,
+    starItemsNeeded,
+    requiredIngredients: Array.from(ingredientRequirements.entries()).map(([id, data]) => ({
+      ingredientId: id,
+      ingredientName: data.name,
+      additionalQty: Math.round(data.qty * 100) / 100,
+      unit: data.unit,
+      cost: Math.round(data.cost * 100) / 100
+    }))
+  };
+}
+
+// AI Strategy context for Gemini API
+export function getStrategyContext() {
+  return {
+    menuEngineering: {
+      stars: menuEngineeringData.filter(i => i.classification === 'star'),
+      plowhorses: menuEngineeringData.filter(i => i.classification === 'plowhorse'),
+      puzzles: menuEngineeringData.filter(i => i.classification === 'puzzle'),
+      dogs: menuEngineeringData.filter(i => i.classification === 'dog')
+    },
+    costTrends: {
+      rising: ingredientCostTrends.filter(t => t.alertType === 'red'),
+      falling: ingredientCostTrends.filter(t => t.alertType === 'green')
+    },
+    profitability: profitabilityKPIs,
+    gapAnalysis: calculateGapAnalysis(businessMetrics.monthlyProfitGoal),
+    excessInventory: inventoryItems.filter(i => i.currentStock > i.maxStock * 0.8),
+    expiringItems: inventoryItems.filter(i => i.expiryDate && new Date(i.expiryDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
+  };
+}
