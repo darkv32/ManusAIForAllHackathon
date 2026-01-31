@@ -33,3 +33,15 @@
 - [x] Add password hashing recommendations (SECURITY.md)
 - [x] Add rate limiting recommendations (SECURITY.md)
 - [x] Add audit logging recommendations (SECURITY.md)
+
+
+## AI Generated Insights Enhancement
+- [x] Update Gemini API response schema to include structured recipe data (ingredient, qty, unit)
+- [x] Create ProposedItemDrawer component with recipe table and financial summary
+- [x] Implement ingredient mapping logic with dynamic costing from inventory
+- [x] Add "New Sourcing Required" flag for unknown ingredients
+- [x] Calculate Total COGS, Recommended Price, and Projected Margin
+- [x] Add margin status indicator (green >70%, yellow 50-70%, red <50%)
+- [x] Add "Save to Draft Menu" button to save proposed recipes
+- [x] Add "Edit Recipe" button for manual quantity/ingredient adjustments
+- [x] Ensure UI matches Matsu Matcha minimalist aesthetic

@@ -15,6 +15,13 @@
       "when": 1769835050431,
       "tag": "0001_strong_sabra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1769838403746,
+      "tag": "0002_lying_liz_osborn",
+      "breakpoints": true
     }
   ]
 }

@@ -4,10 +4,11 @@
  * - Reactive data from database (ingredients, menu items, recipes, sales)
  * - Grouping by Base Drink Name with milk variant breakdown
  * - Real-time margin updates when ingredient costs change
- * - AI Strategy Generator (Gemini API)
+ * - AI Strategy Generator (Gemini API) with detailed proposed item panel
  */
 
 import DashboardLayout from '@/components/DashboardLayout';
+import ProposedItemDrawer, { ProposedDrink } from '@/components/ProposedItemDrawer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,18 +27,18 @@ import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import {
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
+  Check,
   ChevronDown,
   ChevronRight,
   DollarSign,
+  ExternalLink,
   Lightbulb,
   Loader2,
   Milk,
+  Percent,
   Sparkles,
   Star,
   Target,
-  TrendingDown,
   TrendingUp,
   Upload,
 } from 'lucide-react';
@@ -45,7 +46,6 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -53,28 +53,22 @@ import {
 } from 'recharts';
 import { toast } from 'sonner';
 
-// CSV Parser utility
 function parseCSV(text: string): Record<string, string>[] {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
-  
   const headers = lines[0].split(',').map(h => h.trim());
   const rows: Record<string, string>[] = [];
-  
   for (let i = 1; i < lines.length; i++) {
     const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
     if (values.length === headers.length) {
       const row: Record<string, string> = {};
-      headers.forEach((h, idx) => {
-        row[h] = values[idx];
-      });
+      headers.forEach((h, idx) => { row[h] = values[idx]; });
       rows.push(row);
     }
   }
   return rows;
 }
 
-// Types
 interface BaseDrinkGroup {
   baseDrink: string;
   totalRevenue: number;
@@ -94,23 +88,65 @@ interface BaseDrinkGroup {
   }[];
 }
 
+interface EnhancedDrinkIdea {
+  name: string;
+  description: string;
+  category: string;
+  recipe: {
+    ingredientName: string;
+    quantity: number;
+    unit: string;
+    estimatedCost: number;
+    isNewSourcing: boolean;
+  }[];
+  recommendedPrice: number;
+  totalCogs: number;
+  projectedMargin: number;
+  strategicJustification: string;
+}
+
+interface EnhancedAiInsights {
+  drinkIdeas: EnhancedDrinkIdea[];
+  campaigns: string[];
+  priceAdjustments: string[];
+}
+
+function MarginBadge({ margin }: { margin: number }) {
+  if (margin > 70) {
+    return (
+      <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+        <Check className="h-3 w-3 mr-1" />
+        {margin.toFixed(0)}%
+      </Badge>
+    );
+  } else if (margin >= 50) {
+    return (
+      <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+        <Percent className="h-3 w-3 mr-1" />
+        {margin.toFixed(0)}%
+      </Badge>
+    );
+  } else {
+    return (
+      <Badge className="bg-red-500/10 text-red-600 border-red-500/20">
+        <AlertTriangle className="h-3 w-3 mr-1" />
+        {margin.toFixed(0)}%
+      </Badge>
+    );
+  }
+}
+
 export default function Profitability() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [monthlyGoal, setMonthlyGoal] = useState(15000);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
-  const [aiInsights, setAiInsights] = useState<{
-    drinkIdeas: string[];
-    campaigns: string[];
-    priceAdjustments: string[];
-  } | null>(null);
+  const [aiInsights, setAiInsights] = useState<EnhancedAiInsights | null>(null);
+  const [selectedDrink, setSelectedDrink] = useState<ProposedDrink | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // tRPC queries
   const profitabilityQuery = trpc.sales.profitability.useQuery();
-  const ingredientsQuery = trpc.ingredients.list.useQuery();
-  const menuItemsQuery = trpc.menuItems.listWithCosts.useQuery();
   const utils = trpc.useUtils();
 
-  // Mutations
   const bulkUploadSales = trpc.sales.bulkUpload.useMutation({
     onSuccess: (data) => {
       utils.sales.profitability.invalidate();
@@ -122,7 +158,7 @@ export default function Profitability() {
 
   const generateInsightsMutation = trpc.strategy.generateInsights.useMutation({
     onSuccess: (data) => {
-      setAiInsights(data);
+      setAiInsights(data as EnhancedAiInsights);
       setIsGeneratingInsights(false);
       toast.success('AI insights generated successfully');
     },
@@ -132,16 +168,13 @@ export default function Profitability() {
     },
   });
 
-  // Handle sales CSV upload
   const handleSalesCSVUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const rows = parseCSV(text);
-      
       const items = rows.map(row => ({
         transactionId: row.transaction_id || row.transactionId || '',
         timestamp: row.timestamp || '',
@@ -153,7 +186,6 @@ export default function Profitability() {
         paymentMethod: row.payment_method || row.paymentMethod || 'Cash',
         paymentDetail: row.payment_detail || row.paymentDetail || undefined,
       })).filter(item => item.transactionId && item.menuItemId);
-
       if (items.length > 0) {
         bulkUploadSales.mutate({ items });
       } else {
@@ -164,12 +196,9 @@ export default function Profitability() {
     event.target.value = '';
   }, [bulkUploadSales]);
 
-  // Group profitability data by base drink
   const groupedData = useMemo<BaseDrinkGroup[]>(() => {
     if (!profitabilityQuery.data) return [];
-
     const groups = new Map<string, BaseDrinkGroup>();
-
     profitabilityQuery.data.forEach(item => {
       const existing = groups.get(item.baseDrink);
       const variant = {
@@ -183,7 +212,6 @@ export default function Profitability() {
         totalRevenue: item.totalRevenue,
         totalProfit: item.totalProfit,
       };
-
       if (existing) {
         existing.variants.push(variant);
         existing.totalRevenue += item.totalRevenue;
@@ -200,21 +228,15 @@ export default function Profitability() {
         });
       }
     });
-
-    // Calculate average margin for each group
     groups.forEach(group => {
       if (group.totalRevenue > 0) {
         group.avgMargin = (group.totalProfit / group.totalRevenue) * 100;
       }
-      // Sort variants by profit descending
       group.variants.sort((a, b) => b.totalProfit - a.totalProfit);
     });
-
-    // Sort groups by total profit descending
     return Array.from(groups.values()).sort((a, b) => b.totalProfit - a.totalProfit);
   }, [profitabilityQuery.data]);
 
-  // Calculate summary KPIs
   const kpis = useMemo(() => {
     if (!profitabilityQuery.data || profitabilityQuery.data.length === 0) {
       return {
@@ -226,26 +248,18 @@ export default function Profitability() {
         profitGap: monthlyGoal,
       };
     }
-
     const totalRevenue = profitabilityQuery.data.reduce((s, i) => s + i.totalRevenue, 0);
     const totalProfit = profitabilityQuery.data.reduce((s, i) => s + i.totalProfit, 0);
     const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
-
-    // Find top profit contributor
     const sorted = [...profitabilityQuery.data].sort((a, b) => b.totalProfit - a.totalProfit);
     const topContributor = sorted[0] ? { name: sorted[0].itemName, profit: sorted[0].totalProfit } : null;
-
-    // Calculate oatmilk lift (profit from oat milk variants)
     const oatmilkLift = profitabilityQuery.data
       .filter(i => i.milkVariant.toLowerCase().includes('oat'))
       .reduce((s, i) => s + i.totalProfit, 0);
-
     const profitGap = Math.max(0, monthlyGoal - totalProfit);
-
     return { totalRevenue, totalProfit, avgMargin, topContributor, oatmilkLift, profitGap };
   }, [profitabilityQuery.data, monthlyGoal]);
 
-  // Chart data for base drinks
   const chartData = useMemo(() => {
     return groupedData.slice(0, 8).map(g => ({
       name: g.baseDrink.length > 15 ? g.baseDrink.substring(0, 15) + '...' : g.baseDrink,
@@ -254,7 +268,6 @@ export default function Profitability() {
     }));
   }, [groupedData]);
 
-  // Toggle group expansion
   const toggleGroup = (baseDrink: string) => {
     const newExpanded = new Set(expandedGroups);
     if (newExpanded.has(baseDrink)) {
@@ -265,10 +278,8 @@ export default function Profitability() {
     setExpandedGroups(newExpanded);
   };
 
-  // Generate AI insights
   const handleGenerateInsights = () => {
     setIsGeneratingInsights(true);
-    
     const context = {
       menuEngineering: {
         stars: groupedData.filter(g => g.avgMargin >= 60 && g.totalQuantity >= 50).map(g => ({
@@ -285,24 +296,24 @@ export default function Profitability() {
           name: g.baseDrink,
         })),
       },
-      costTrends: {
-        rising: [],
-        falling: [],
-      },
+      costTrends: { rising: [], falling: [] },
       profitability: {
         actualMargin: kpis.avgMargin,
         targetMargin: 70,
         profitGapToGoal: kpis.profitGap,
       },
     };
-
     generateInsightsMutation.mutate({ context: JSON.stringify(context) });
+  };
+
+  const handleDrinkClick = (drink: EnhancedDrinkIdea) => {
+    setSelectedDrink(drink);
+    setDrawerOpen(true);
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-3xl font-display font-medium tracking-tight">Profitability & Sales Performance</h1>
@@ -311,133 +322,120 @@ export default function Profitability() {
             </p>
           </div>
           <label>
-            <Button variant="outline" size="sm" asChild>
-              <span>
-                <Upload className="h-4 w-4 mr-1" />
+            <input type="file" accept=".csv" onChange={handleSalesCSVUpload} className="hidden" />
+            <Button variant="outline" asChild>
+              <span className="cursor-pointer">
+                <Upload className="h-4 w-4 mr-2" />
                 Import Sales CSV
               </span>
             </Button>
-            <input
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={handleSalesCSVUpload}
-            />
           </label>
         </div>
 
-        {/* KPI Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Revenue */}
           <Card className="wabi-card">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <DollarSign className="h-4 w-4 text-primary" />
+                  <p className="text-2xl font-display font-medium mono-numbers tracking-tight">
+                    ${kpis.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
                 </div>
-                <p className="text-2xl font-display font-medium mono-numbers">
-                  ${kpis.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
+                <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
+                  <DollarSign className="h-5 w-5" />
+                </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Average Margin */}
           <Card className="wabi-card">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Average Margin</p>
-                  <Target className="h-4 w-4 text-primary" />
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-2xl font-display font-medium mono-numbers tracking-tight">
+                      {kpis.avgMargin.toFixed(1)}%
+                    </p>
+                    <span className="text-xs text-muted-foreground">target: 60%</span>
+                  </div>
                 </div>
-                <div className="flex items-end gap-2">
-                  <span className={cn(
-                    "text-2xl font-display font-medium mono-numbers",
-                    kpis.avgMargin >= 60 ? "text-green-600" : "text-amber-600"
-                  )}>
-                    {kpis.avgMargin.toFixed(1)}%
-                  </span>
-                  <span className="text-sm text-muted-foreground mb-1">target: 60%</span>
+                <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
+                  <Target className="h-5 w-5" />
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Top Contributor */}
           <Card className="wabi-card">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Top Profit Contributor</p>
-                  <Star className="h-4 w-4 text-amber-500" />
-                </div>
-                {kpis.topContributor ? (
-                  <>
-                    <p className="font-medium truncate">{kpis.topContributor.name}</p>
+                  <p className="text-lg font-medium truncate max-w-[180px]">
+                    {kpis.topContributor?.name || 'N/A'}
+                  </p>
+                  {kpis.topContributor && (
                     <p className="text-sm text-primary mono-numbers">
                       ${kpis.topContributor.profit.toFixed(2)} profit
                     </p>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">No data</p>
-                )}
+                  )}
+                </div>
+                <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-500">
+                  <Star className="h-5 w-5" />
+                </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Oatmilk Lift */}
           <Card className="wabi-card">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Oatmilk Lift</p>
-                  <Milk className="h-4 w-4 text-primary" />
+                  <p className="text-2xl font-display font-medium mono-numbers tracking-tight">
+                    ${kpis.oatmilkLift.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Profit from oat milk variants</p>
                 </div>
-                <p className="text-2xl font-display font-medium mono-numbers text-primary">
-                  ${kpis.oatmilkLift.toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground">Profit from oat milk variants</p>
+                <div className="p-2.5 rounded-lg bg-green-600/10 text-green-600">
+                  <Milk className="h-5 w-5" />
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Profit Goal Progress */}
         <Card className="wabi-card">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-display">Monthly Profit Goal</CardTitle>
+          <CardContent className="p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h3 className="text-lg font-display font-medium">Monthly Profit Goal</h3>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Goal:</span>
                 <Input
                   type="number"
                   value={monthlyGoal}
                   onChange={(e) => setMonthlyGoal(Number(e.target.value))}
-                  className="w-24 h-8 text-sm"
+                  className="w-28 mono-numbers"
                 />
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+            <div className="mt-4 space-y-3">
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-3xl font-display font-medium mono-numbers">
+                  <p className="text-3xl font-display font-medium mono-numbers tracking-tight">
                     ${kpis.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                   <p className="text-sm text-muted-foreground">of ${monthlyGoal.toLocaleString()} goal</p>
                 </div>
-                <p className="text-2xl font-medium text-primary mono-numbers">
-                  {monthlyGoal > 0 ? ((kpis.totalProfit / monthlyGoal) * 100).toFixed(1) : 0}%
+                <p className={cn(
+                  "text-2xl font-medium mono-numbers",
+                  kpis.totalProfit >= monthlyGoal ? "text-green-600" : "text-amber-600"
+                )}>
+                  {((kpis.totalProfit / monthlyGoal) * 100).toFixed(1)}%
                 </p>
               </div>
-              <Progress value={monthlyGoal > 0 ? (kpis.totalProfit / monthlyGoal) * 100 : 0} className="h-2" />
-              {kpis.profitGap > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">${kpis.profitGap.toFixed(2)}</span> remaining to reach goal
-                </p>
-              )}
+              <Progress value={Math.min((kpis.totalProfit / monthlyGoal) * 100, 100)} className="h-2" />
             </div>
           </CardContent>
         </Card>
@@ -448,61 +446,45 @@ export default function Profitability() {
             <TabsTrigger value="ai">AI Strategy</TabsTrigger>
           </TabsList>
 
-          {/* Profitability Breakdown Tab */}
           <TabsContent value="breakdown" className="space-y-4">
-            {/* Profit by Base Drink Chart */}
             <Card className="wabi-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-display">Profit by Base Drink</CardTitle>
                 <CardDescription>Total profit contribution by drink type</CardDescription>
               </CardHeader>
               <CardContent>
-                {profitabilityQuery.isLoading ? (
-                  <div className="h-[250px] flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-                ) : chartData.length === 0 ? (
-                  <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-                    No sales data. Upload sales_data.csv to see profitability analysis.
-                  </div>
-                ) : (
-                  <div className="h-[250px]">
+                {chartData.length > 0 ? (
+                  <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} layout="vertical" margin={{ left: 100 }}>
-                        <XAxis type="number" tickFormatter={(v) => `$${v.toFixed(0)}`} />
-                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={100} />
+                      <BarChart data={chartData} layout="vertical" margin={{ left: 80, right: 20 }}>
+                        <XAxis type="number" tickFormatter={(v) => `$${v}`} />
+                        <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: 'oklch(0.99 0.008 85)',
                             border: '1px solid oklch(0.88 0.015 85)',
                             borderRadius: '8px',
                           }}
-                          formatter={(value: number, name: string) => [
-                            name === 'profit' ? `$${value.toFixed(2)}` : `${value.toFixed(1)}%`,
-                            name === 'profit' ? 'Profit' : 'Margin',
-                          ]}
+                          formatter={(value: number) => [`$${value.toFixed(2)}`, 'Profit']}
                         />
-                        <Bar dataKey="profit" fill="oklch(0.42 0.08 145)" radius={[0, 4, 4, 0]}>
-                          {chartData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={entry.margin >= 60 ? 'oklch(0.42 0.08 145)' : 'oklch(0.72 0.08 55)'}
-                            />
-                          ))}
-                        </Bar>
+                        <Bar dataKey="profit" fill="oklch(0.35 0.12 145)" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>No data available. Upload sales data to see profit breakdown.</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Grouped Profitability Table */}
             <Card className="wabi-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-display">Profitability by Base Drink & Milk Variant</CardTitle>
                 <CardDescription>
-                  Click on a drink to see margin breakdown by milk type. Identify which variants help or hurt margins.
+                  Click on a drink to see margin breakdown by milk type.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -598,7 +580,6 @@ export default function Profitability() {
             </Card>
           </TabsContent>
 
-          {/* AI Strategy Tab */}
           <TabsContent value="ai" className="space-y-4">
             <Card className="wabi-card">
               <CardHeader className="pb-2">
@@ -638,51 +619,82 @@ export default function Profitability() {
                   </div>
                 )}
                 {aiInsights && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Drink Ideas */}
-                    <Card className="border-primary/20">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-primary" />
-                          Novel Drink Ideas
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {aiInsights.drinkIdeas.map((idea, idx) => (
-                          <p key={idx} className="text-sm text-muted-foreground">{idea}</p>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Proposed Menu Items
+                        <span className="text-xs">(Click for details)</span>
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {aiInsights.drinkIdeas.map((drink, idx) => (
+                          <Card
+                            key={idx}
+                            className="cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
+                            onClick={() => handleDrinkClick(drink)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <h4 className="font-medium">{drink.name}</h4>
+                                  <Badge variant="outline" className="text-xs mt-1">
+                                    {drink.category}
+                                  </Badge>
+                                </div>
+                                <MarginBadge margin={drink.projectedMargin} />
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                                {drink.description}
+                              </p>
+                              <div className="flex items-center justify-between text-sm">
+                                <div>
+                                  <span className="text-muted-foreground">Price: </span>
+                                  <span className="font-medium mono-numbers">${drink.recommendedPrice.toFixed(2)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">COGS: </span>
+                                  <span className="font-medium mono-numbers">${drink.totalCogs.toFixed(2)}</span>
+                                </div>
+                              </div>
+                              <div className="mt-3 flex items-center text-xs text-primary">
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                View Recipe & Details
+                              </div>
+                            </CardContent>
+                          </Card>
                         ))}
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
 
-                    {/* Campaigns */}
-                    <Card className="border-amber-500/20">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-amber-500" />
-                          Campaign Strategies
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {aiInsights.campaigns.map((campaign, idx) => (
-                          <p key={idx} className="text-sm text-muted-foreground">{campaign}</p>
-                        ))}
-                      </CardContent>
-                    </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card className="border-amber-500/20">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-amber-500" />
+                            Campaign Strategies
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {aiInsights.campaigns.map((campaign, idx) => (
+                            <p key={idx} className="text-sm text-muted-foreground">{campaign}</p>
+                          ))}
+                        </CardContent>
+                      </Card>
 
-                    {/* Price Adjustments */}
-                    <Card className="border-green-600/20">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-green-600" />
-                          Price Adjustments
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {aiInsights.priceAdjustments.map((adj, idx) => (
-                          <p key={idx} className="text-sm text-muted-foreground">{adj}</p>
-                        ))}
-                      </CardContent>
-                    </Card>
+                      <Card className="border-green-600/20">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                            Price Adjustments
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {aiInsights.priceAdjustments.map((adj, idx) => (
+                            <p key={idx} className="text-sm text-muted-foreground">{adj}</p>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -690,6 +702,15 @@ export default function Profitability() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <ProposedItemDrawer
+        drink={selectedDrink}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onSaved={() => {
+          utils.draftMenuItems.list.invalidate();
+        }}
+      />
     </DashboardLayout>
   );
 }

@@ -416,3 +416,127 @@ export async function getProfitabilityData(): Promise<ProfitabilityData[]> {
     };
   });
 }
+
+
+// ============ DRAFT MENU ITEMS ============
+
+import { draftMenuItems, DraftMenuItem, InsertDraftMenuItem } from "../drizzle/schema";
+
+export type DraftRecipeItem = {
+  ingredientName: string;
+  quantity: number;
+  unit: string;
+  estimatedCost: number;
+  isNewSourcing: boolean;
+};
+
+export async function getAllDraftMenuItems(): Promise<(DraftMenuItem & { parsedRecipe: DraftRecipeItem[] })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const items = await db.select().from(draftMenuItems).orderBy(draftMenuItems.createdAt);
+  return items.map(item => ({
+    ...item,
+    parsedRecipe: JSON.parse(item.recipe || '[]') as DraftRecipeItem[],
+  }));
+}
+
+export async function createDraftMenuItem(data: {
+  itemName: string;
+  category: string;
+  recommendedPrice: string;
+  totalCogs: string;
+  projectedMargin: string;
+  strategicJustification: string;
+  recipe: DraftRecipeItem[];
+}): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(draftMenuItems).values({
+    itemName: data.itemName,
+    category: data.category,
+    recommendedPrice: data.recommendedPrice,
+    totalCogs: data.totalCogs,
+    projectedMargin: data.projectedMargin,
+    strategicJustification: data.strategicJustification,
+    recipe: JSON.stringify(data.recipe),
+  });
+  
+  return Number(result[0].insertId);
+}
+
+export async function updateDraftMenuItem(id: number, data: Partial<{
+  itemName: string;
+  category: string;
+  recommendedPrice: string;
+  totalCogs: string;
+  projectedMargin: string;
+  strategicJustification: string;
+  recipe: DraftRecipeItem[];
+  status: 'draft' | 'active' | 'archived';
+}>): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updateData: Partial<InsertDraftMenuItem> = {};
+  if (data.itemName !== undefined) updateData.itemName = data.itemName;
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.recommendedPrice !== undefined) updateData.recommendedPrice = data.recommendedPrice;
+  if (data.totalCogs !== undefined) updateData.totalCogs = data.totalCogs;
+  if (data.projectedMargin !== undefined) updateData.projectedMargin = data.projectedMargin;
+  if (data.strategicJustification !== undefined) updateData.strategicJustification = data.strategicJustification;
+  if (data.recipe !== undefined) updateData.recipe = JSON.stringify(data.recipe);
+  if (data.status !== undefined) updateData.status = data.status;
+  
+  await db.update(draftMenuItems).set(updateData).where(eq(draftMenuItems.id, id));
+}
+
+export async function deleteDraftMenuItem(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(draftMenuItems).where(eq(draftMenuItems.id, id));
+}
+
+export async function promoteDraftToActive(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get the draft item
+  const draftItems = await db.select().from(draftMenuItems).where(eq(draftMenuItems.id, id)).limit(1);
+  if (draftItems.length === 0) throw new Error("Draft item not found");
+  
+  const draft = draftItems[0];
+  
+  // Generate a unique item ID
+  const itemId = `MENU_${Date.now()}`;
+  
+  // Create the menu item
+  await db.insert(menuItems).values({
+    itemId,
+    itemName: draft.itemName,
+    category: draft.category,
+    salesPrice: draft.recommendedPrice,
+  });
+  
+  // Parse recipe and create recipe entries
+  const recipeItems = JSON.parse(draft.recipe || '[]') as DraftRecipeItem[];
+  const allIngredients = await getAllIngredients();
+  const ingredientMap = new Map(allIngredients.map(i => [i.name.toLowerCase(), i]));
+  
+  for (let i = 0; i < recipeItems.length; i++) {
+    const recipeItem = recipeItems[i];
+    const ingredient = ingredientMap.get(recipeItem.ingredientName.toLowerCase());
+    
+    if (ingredient) {
+      await db.insert(recipes).values({
+        recipeId: `${itemId}_R${i + 1}`,
+        menuItemId: itemId,
+        ingredientId: ingredient.ingredientId,
+        quantity: String(recipeItem.quantity),
+      });
+    }
+  }
+  
+  // Update draft status to active
+  await db.update(draftMenuItems).set({ status: 'active' }).where(eq(draftMenuItems.id, id));
+}

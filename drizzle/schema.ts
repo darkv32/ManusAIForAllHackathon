@@ -95,3 +95,25 @@ export const sales = mysqlTable("sales", {
 
 export type Sale = typeof sales.$inferSelect;
 export type InsertSale = typeof sales.$inferInsert;
+
+
+/**
+ * Draft menu items table - stores AI-proposed menu items before activation
+ */
+export const draftMenuItems = mysqlTable("draftMenuItems", {
+  id: int("id").autoincrement().primaryKey(),
+  itemName: varchar("itemName", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 64 }).notNull(),
+  recommendedPrice: decimal("recommendedPrice", { precision: 10, scale: 2 }).notNull(),
+  totalCogs: decimal("totalCogs", { precision: 10, scale: 4 }).notNull(),
+  projectedMargin: decimal("projectedMargin", { precision: 5, scale: 2 }).notNull(),
+  strategicJustification: text("strategicJustification"),
+  recipe: text("recipe").notNull(), // JSON string of recipe array
+  status: mysqlEnum("status", ["draft", "active", "archived"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DraftMenuItem = typeof draftMenuItems.$inferSelect;
+export type InsertDraftMenuItem = typeof draftMenuItems.$inferInsert;
