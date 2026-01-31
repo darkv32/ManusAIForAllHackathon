@@ -23,3 +23,13 @@
 - [x] Refactor Profitability page with reactive data calculations
 - [x] Group profitability by Base Drink Name with milk variant breakdown
 - [x] Ensure real-time reactivity when ingredient costs change
+
+
+## Authentication & Security
+- [x] Create login page with admin credentials (admin/admin)
+- [x] Implement route protection for all dashboard pages
+- [x] Add session management with 8-hour expiration
+- [x] Add logout functionality in user menu
+- [x] Add password hashing recommendations (SECURITY.md)
+- [x] Add rate limiting recommendations (SECURITY.md)
+- [x] Add audit logging recommendations (SECURITY.md)

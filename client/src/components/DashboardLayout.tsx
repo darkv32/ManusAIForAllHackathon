@@ -17,16 +17,27 @@ import {
   DollarSign,
   Home,
   Lightbulb,
+  LogOut,
   Menu,
   Package,
   Settings,
-  TrendingUp
+  TrendingUp,
+  User
 } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from './ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface NavItem {
@@ -219,6 +230,47 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
   );
 }
 
+function UserMenu() {
+  const { user, logout } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleLogout = () => {
+    logout();
+    setLocation('/login');
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-primary/5">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="w-4 h-4 text-primary" />
+          </div>
+          <span className="text-[13px] font-medium hidden md:block">{user?.username || 'User'}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium">{user?.username || 'User'}</p>
+            <p className="text-xs text-muted-foreground">Administrator</p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setLocation('/settings')}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function MobileNav() {
   return (
     <Sheet>
@@ -312,6 +364,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 day: 'numeric' 
               })}
             </span>
+            <UserMenu />
           </div>
         </header>
 
